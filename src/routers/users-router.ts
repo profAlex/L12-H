@@ -1,0 +1,50 @@
+import { Router } from "express";
+import { inputPaginationValidatorForUsers } from "./validation-middleware/pagination-validators";
+import { UsersSortListEnum } from "./util-enums/fields-for-sorting";
+import { inputErrorManagementMiddleware } from "./validation-middleware/error-management-validation-middleware";
+import { superAdminGuardMiddleware } from "./validation-middleware/base64-auth-guard_middleware";
+// import {
+//     createNewUser,
+//     deleteUser,
+//     getSeveralUsers,
+// } from "./router-handlers/user-router-description";
+import { userInputModelValidation } from "./validation-middleware/UserInputModel-validation-middleware";
+import { createIdValidator } from "./validation-middleware/id-verification-and-validation";
+import { IdParamName } from "./util-enums/id-names";
+import { CollectionNames } from "../db/collection-names";
+import { container } from "../composition-root/composition-root";
+import { UsersHandler } from "./router-handlers/user-router-description";
+import { TYPES } from "../composition-root/ioc-types";
+
+export const usersRouter = Router();
+
+const usersHandler = container.get<UsersHandler>(TYPES.UsersHandler);
+
+const validateUserId = createIdValidator(
+    IdParamName.UserId,
+    CollectionNames.Users,
+);
+
+
+
+usersRouter.get(
+    "/",
+    superAdminGuardMiddleware,
+    inputPaginationValidatorForUsers(UsersSortListEnum),
+    inputErrorManagementMiddleware,
+    usersHandler.getSeveralUsers,
+);
+usersRouter.post(
+    "/",
+    superAdminGuardMiddleware,
+    userInputModelValidation,
+    inputErrorManagementMiddleware,
+    usersHandler.createNewUser,
+);
+usersRouter.delete(
+    `/:${IdParamName.UserId}`, // было просто :id
+    superAdminGuardMiddleware,
+    validateUserId,
+    inputErrorManagementMiddleware,
+    usersHandler.deleteUser,
+);
