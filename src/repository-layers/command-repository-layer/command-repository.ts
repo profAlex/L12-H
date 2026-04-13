@@ -21,7 +21,7 @@ import { CommentStorageModel } from "../../routers/router-types/comment-storage-
 import { SessionStorageModel } from "../../routers/router-types/auth-SessionStorageModel";
 import { RequestRestrictionStorageModel } from "../../routers/router-types/auth-RequestRestrictionStorageModel";
 import { LikeStatus } from "../../routers/router-types/comment-like-storage-model";
-import { LikeModel } from "../../db/mongoose-like-collection-model";
+import { CommentLikeModel } from "../../db/mongoose-comments-like-collection-model";
 
 export type BloggerCollectionStorageModel = {
     _id: ObjectId;
@@ -1673,7 +1673,7 @@ export const dataCommandRepository = {
         await Promise.all([
             SessionModel.deleteMany({}),
             CommentModel.deleteMany({}),
-            LikeModel.deleteMany({}),
+            CommentLikeModel.deleteMany({}),
         ]);
 
         await Promise.all([

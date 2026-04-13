@@ -37,7 +37,7 @@ const CommentSchema = new Schema<CommentStorageModel>(
             type: String,
             required: true,
             default: function (this: any) {
-                return this._id ? this._id.toString() : null;
+                return this._id ? this._id.toString() : "undefined";
             },
         },
         relatedPostId: { type: String, required: true },

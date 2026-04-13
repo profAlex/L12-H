@@ -17,7 +17,7 @@ import { RefreshTokenGuard } from "../routers/guard-middleware/refresh-token-gua
 import { CommentsHandler } from "../routers/router-handlers/comment-router-description";
 import { CommentsQueryService } from "../service-layer(BLL)/comments-query-service";
 import { CommentsQueryRepository } from "../repository-layers/query-repository-layer/comments-query-repository";
-import { LikesQueryRepository } from "../repository-layers/query-repository-layer/likes-query-repository";
+import { CommentsLikesQueryRepository } from "../repository-layers/query-repository-layer/comments-likes-query-repository";
 import { CommentsCommandService } from "../service-layer(BLL)/comments-command-service";
 import { CommentsCommandRepository } from "../repository-layers/command-repository-layer/comments-command-repository";
 import { LikesCommandRepository } from "../repository-layers/command-repository-layer/likes-command-repository";
@@ -87,8 +87,8 @@ container.bind(TYPES.UsersQueryRepository).to(UsersQueryRepository).inSingletonS
 container.bind(TYPES.UsersCommandRepository).to(UsersCommandRepository).inSingletonScope();
 container.bind(TYPES.CommentsQueryRepository).to(CommentsQueryRepository).inSingletonScope();
 container.bind(TYPES.CommentsCommandRepository).to(CommentsCommandRepository).inSingletonScope();
-container.bind(TYPES.LikesQueryRepository).to(LikesQueryRepository).inSingletonScope();
-container.bind(TYPES.LikesCommandRepository).to(LikesCommandRepository).inSingletonScope();
+container.bind(TYPES.CommentsLikesQueryRepository).to(CommentsLikesQueryRepository).inSingletonScope();
+container.bind(TYPES.CommentsLikesCommandRepository).to(LikesCommandRepository).inSingletonScope();
 container.bind(TYPES.PostsQueryRepository).to(PostsQueryRepository).inSingletonScope();
 container.bind(TYPES.PostsCommandRepository).to(PostsCommandRepository).inSingletonScope();
 

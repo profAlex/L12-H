@@ -2,7 +2,6 @@ import { Schema, model, Model, HydratedDocument } from "mongoose";
 import { envConfig } from "../config";
 import { SessionStorageModel } from "../routers/router-types/auth-SessionStorageModel";
 import { UUIDgeneration } from "../adapters/randomUUIDgeneration/UUIDgeneration";
-import { CallbackWithoutResultAndOptionalError } from "mongoose";
 import { SESSIONS_COLLECTION_NAME } from "./db-collection-names";
 
 const SessionSchema = new Schema<SessionStorageModel>(

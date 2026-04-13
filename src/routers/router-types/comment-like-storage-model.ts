@@ -5,7 +5,7 @@ export enum LikeStatus {
     Dislike = 'Dislike'
 }
 
-export type LikesStorageModel = {
+export type CommentsLikesStorageModel = {
     commentId: string;
     userId: string;
     likeStatus: LikeStatus;

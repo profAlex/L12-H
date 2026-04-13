@@ -11,7 +11,7 @@ import { envConfig } from "../config";
 import mongoose from "mongoose";
 import { SessionModel } from "./mongoose-session-collection-model";
 import { CommentModel } from "./mongoose-comment-collection-model";
-import { LikeModel } from "./mongoose-like-collection-model";
+import { CommentLikeModel } from "./mongoose-comments-like-collection-model";
 import {
     BLOGGERS_COLLECTION_NAME,
     COMMENTS_COLLECTION_NAME,
@@ -23,7 +23,7 @@ const DB_NAME = "bloggers_db";
 
 
 // const URI ="mongodb+srv://admin:admin@learningcluster.f1zm90x.mongodb.net/?retryWrites=true&w=majority&appName=LearningCluster";
-const URI = ""
+const URI = "";
 
 let db: Db | null = null;
 export let client: MongoClient | null = null;
@@ -72,8 +72,8 @@ export async function runDB() {
             // await nativeDb.dropCollection(COMMENTS_COLLECTION_NAME);
             // console.log(`🧹 Collection ${COMMENTS_COLLECTION_NAME} dropped to reset indexes`);
             //
-            // await nativeDb.dropCollection(LIKES_COLLECTION_NAME);
-            // console.log(`🧹 Collection ${LIKES_COLLECTION_NAME} dropped to reset indexes`);
+            // await nativeDb.dropCollection(COMMENTS_LIKES_COLLECTION_NAME);
+            // console.log(`🧹 Collection ${COMMENTS_LIKES_COLLECTION_NAME} dropped to reset indexes`);
             //
             // await nativeDb.dropCollection(REQUESTS_RESTRICTIONS_COLLECTION_NAME);
             // console.log(`🧹 Collection ${REQUESTS_RESTRICTIONS_COLLECTION_NAME} dropped to reset indexes`);
@@ -90,14 +90,14 @@ export async function runDB() {
             await Promise.all([
                 safeMongooseDropIndexes(SessionModel),
                 safeMongooseDropIndexes(CommentModel),
-                safeMongooseDropIndexes(LikeModel)
+                safeMongooseDropIndexes(CommentLikeModel)
             ]);
 
             // создаем индексы заново (синхронизируем со схемами)
             await Promise.all([
                 SessionModel.createIndexes(),
                 CommentModel.createIndexes(), // Создаст и твой новый составной индекс
-                LikeModel.createIndexes()
+                CommentLikeModel.createIndexes()
             ]);
 
             console.log("✅ Mongoose indexes rebuilt successfully");
@@ -118,7 +118,7 @@ export async function runDB() {
         // запускаем оба асинхронных процесса параллельно
         await Promise.all([
             SessionModel.createIndexes(),
-            LikeModel.createIndexes(),
+            CommentLikeModel.createIndexes(),
             CommentModel.createIndexes()
         ]);
         console.log("✅ Fresh Mongoose indexes created successfully");

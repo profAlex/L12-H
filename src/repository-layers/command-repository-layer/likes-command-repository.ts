@@ -1,17 +1,17 @@
 import { inject, injectable } from "inversify";
-import { LikeDocument, LikeModel } from "../../db/mongoose-like-collection-model";
+import { CommentLikeDocument, CommentLikeModel } from "../../db/mongoose-comments-like-collection-model";
 
 @injectable()
 export class LikesCommandRepository {
 
-    async checkIfUserAlreadyReacted(sentUserId: string, sentCommentId: string): Promise<LikeDocument | null> {
-        return LikeModel.findOne({
+    async checkIfUserAlreadyReacted(sentUserId: string, sentCommentId: string): Promise<CommentLikeDocument | null> {
+        return CommentLikeModel.findOne({
             userId: sentUserId,
             commentId: sentCommentId
         });
     }
 
-    async saveLikeDocument(sentLikeDocument: LikeDocument): Promise<boolean> {
+    async saveLikeDocument(sentLikeDocument: CommentLikeDocument): Promise<boolean> {
         try {
             await sentLikeDocument.save();
 
@@ -24,7 +24,7 @@ export class LikesCommandRepository {
     }
 
 
-    async deleteLikeById(sentLikeDocument: LikeDocument): Promise<boolean> {
+    async deleteLikeById(sentLikeDocument: CommentLikeDocument): Promise<boolean> {
         try {
             await sentLikeDocument.deleteOne();
 

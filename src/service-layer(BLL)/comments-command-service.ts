@@ -9,14 +9,14 @@ import { CommentDocument } from "../db/mongoose-comment-collection-model";
 import { CommentViewModel } from "../routers/router-types/comment-view-model";
 import { LikeStatus } from "../routers/router-types/comment-like-storage-model";
 import { LikesCommandRepository } from "../repository-layers/command-repository-layer/likes-command-repository";
-import { LikeDocument, LikeModel } from "../db/mongoose-like-collection-model";
+import { CommentLikeDocument, CommentLikeModel } from "../db/mongoose-comments-like-collection-model";
 
 @injectable()
 export class CommentsCommandService {
     constructor(
         @inject(TYPES.CommentsCommandRepository)
         protected commentsCommandRepository: CommentsCommandRepository,
-        @inject(TYPES.LikesCommandRepository)
+        @inject(TYPES.CommentsLikesCommandRepository)
         protected likesCommandRepository: LikesCommandRepository,
     ) {}
 
@@ -130,7 +130,7 @@ export class CommentsCommandService {
         sentUserId: string,
         sentLike: LikeStatus,
     ): Promise<CustomResult> {
-        const previousReactionResult: LikeDocument | null =
+        const previousReactionResult: CommentLikeDocument | null =
             await this.likesCommandRepository.checkIfUserAlreadyReacted(
                 sentUserId,
                 sentCommentId,
@@ -140,7 +140,7 @@ export class CommentsCommandService {
         if (previousReactionResult === null && sentLike !== "None") {
             // console.warn("DID WE GET INSIDE если прежней реакции не найдено и новая реакция не None ???");
 
-            const newLikeDocument: LikeDocument = await LikeModel.create({
+            const newLikeDocument: CommentLikeDocument = await CommentLikeModel.create({
                 commentId: sentCommentId,
                 userId: sentUserId,
                 likeStatus: sentLike,

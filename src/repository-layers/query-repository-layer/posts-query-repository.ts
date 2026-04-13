@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { injectable } from "inversify";
+import { inject, injectable } from "inversify";
 
 import { InputGetCommentsQueryModel } from "../../routers/router-types/comment-search-input-query-model";
 import { PaginatedCommentViewModel } from "../../routers/router-types/comment-paginated-view-model";
@@ -7,7 +7,7 @@ import { mapToCommentListPaginatedOutput } from "../mappers/map-paginated-commen
 import { CommentModel, postsCollection } from "../../db/mongo.db";
 import { TYPES } from "../../composition-root/ioc-types";
 import { container } from "../../composition-root/composition-root";
-import { LikesQueryRepository } from "./likes-query-repository";
+import { CommentsLikesQueryRepository } from "./comments-likes-query-repository";
 import { InputGetBlogPostsByIdQuery } from "../../routers/router-types/blog-search-by-id-input-model";
 import { PaginatedPostViewModel } from "../../routers/router-types/post-paginated-view-model";
 import { mapToPostListPaginatedOutput } from "../mappers/map-paginated-post-search";
@@ -15,7 +15,7 @@ import { PostViewModel } from "../../routers/router-types/post-view-model";
 import { ObjectId } from "mongodb";
 import { PostCollectionStorageModel } from "../command-repository-layer/command-repository";
 import { mapSinglePostCollectionToViewModel } from "../mappers/map-to-PostViewModel";
-
+import { CommentsQueryRepository } from "./comments-query-repository";
 
 async function findPostByPrimaryKey(
     id: ObjectId,
@@ -25,46 +25,39 @@ async function findPostByPrimaryKey(
 
 @injectable()
 export class PostsQueryRepository {
+    constructor(
+        @inject(TYPES.CommentsQueryRepository)
+        protected commentsQueryRepository: CommentsQueryRepository,
+    ) {}
 
     async getSeveralCommentsByPostId(
         sentPostId: string,
         sentUserId: string,
         sentSanitizedQuery: InputGetCommentsQueryModel,
     ): Promise<PaginatedCommentViewModel> {
-        const { sortBy, sortDirection, pageNumber, pageSize } =
-            sentSanitizedQuery;
 
-        const skip = (pageNumber - 1) * pageSize;
+        const [items, totalCount] = await Promise.all([
+            this.commentsQueryRepository.getSortedDocuments(
+                sentPostId,
+                sentSanitizedQuery,
+            ),
+            this.commentsQueryRepository.getCountDocuments(sentPostId),
+        ]);
 
-        // const items = await commentsCollection
-        //     .find({ relatedPostId: sentPostId })
-        //
-        //     // "asc" (по возрастанию), то используется 1
-        //     // "desc" — то -1 для сортировки по убыванию. - по алфавиту от Я-А, Z-A
-        //     .sort({ [sortBy]: sortDirection })
-        //
-        //     // пропускаем определённое количество док. перед тем, как вернуть нужный набор данных.
+        // await CommentModel.find({ relatedPostId: sentPostId })
+        //     .sort({ [sortBy]: sortDirection === "asc" ? 1 : -1 })
         //     .skip(skip)
-        //
-        //     // ограничивает количество возвращаемых документов до значения pageSize
         //     .limit(pageSize)
-        //     .toArray();
+        //     .lean();
         //
-        // const totalCount = await commentsCollection.countDocuments({
+        // const totalCount = await CommentModel.countDocuments({
         //     relatedPostId: sentPostId,
         // });
 
-        const items = await CommentModel.find({ relatedPostId: sentPostId })
-            .sort({ [sortBy]: sortDirection === "asc" ? 1 : -1 })
-            .skip(skip)
-            .limit(pageSize)
-            .lean();
-
-        const totalCount = await CommentModel.countDocuments({ relatedPostId: sentPostId });
-
-        const likesQueryRepository = container.get<LikesQueryRepository>(
-            TYPES.LikesQueryRepository,
-        );
+        const likesQueryRepository =
+            container.get<CommentsLikesQueryRepository>(
+                TYPES.CommentsLikesQueryRepository,
+            );
 
         const itemsWithReactions = await Promise.all(
             items.map(async (comment) => {
@@ -91,16 +84,6 @@ export class PostsQueryRepository {
                 };
             }),
         );
-        // const previousReactionResult: LikeDocument | null =
-        //     await likesQueryRepository.checkIfUserAlreadyReacted(
-        //         sentUserId,
-        //         sentCommentId,
-        //     );
-        //
-        // if(previousReactionResult)
-        // {
-        //     foundComment.likesInfo.myStatus = previousReactionResult.likeStatus;
-        // }
 
         return mapToCommentListPaginatedOutput(itemsWithReactions, {
             pageNumber: pageNumber,
@@ -124,7 +107,9 @@ export class PostsQueryRepository {
             .limit(pageSize)
             .lean();
 
-        const totalCount = await CommentModel.countDocuments({ relatedPostId: sentPostId });
+        const totalCount = await CommentModel.countDocuments({
+            relatedPostId: sentPostId,
+        });
         // const items = await commentsCollection
         //     .find({ relatedPostId: sentPostId })
         //
@@ -138,7 +123,6 @@ export class PostsQueryRepository {
         //     // ограничивает количество возвращаемых документов до значения pageSize
         //     .limit(pageSize)
         //     .toArray();
-
 
         // const totalCount = await commentsCollection.countDocuments({
         //     relatedPostId: sentPostId,

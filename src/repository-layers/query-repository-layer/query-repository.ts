@@ -43,8 +43,8 @@ import { mapSessionStorageToDeviceViewModel } from "../mappers/mapSessionStorage
 import { SessionStorageModel } from "../../routers/router-types/auth-SessionStorageModel";
 import { RequestRestrictionStorageModel } from "../../routers/router-types/auth-RequestRestrictionStorageModel";
 import { findUserByPrimaryKey } from "./users-query-repository";
-import { LikeDocument } from "../../db/mongoose-like-collection-model";
-import { LikesQueryRepository } from "./likes-query-repository";
+import { CommentLikeDocument } from "../../db/mongoose-comments-like-collection-model";
+import { CommentsLikesQueryRepository } from "./comments-likes-query-repository";
 import { container } from "../../composition-root/composition-root";
 import { TYPES } from "../../composition-root/ioc-types";
 
@@ -109,8 +109,8 @@ export const dataQueryRepository = {
     //
     //     const totalCount = await CommentModel.countDocuments({ relatedPostId: sentPostId });
     //
-    //     const likesQueryRepository = container.get<LikesQueryRepository>(
-    //         TYPES.LikesQueryRepository,
+    //     const likesQueryRepository = container.get<CommentsLikesQueryRepository>(
+    //         TYPES.CommentsLikesQueryRepository,
     //     );
     //
     //     const itemsWithReactions = await Promise.all(
@@ -138,7 +138,7 @@ export const dataQueryRepository = {
     //             };
     //         }),
     //     );
-    //     // const previousReactionResult: LikeDocument | null =
+    //     // const previousReactionResult: CommentLikeDocument | null =
     //     //     await likesQueryRepository.checkIfUserAlreadyReacted(
     //     //         sentUserId,
     //     //         sentCommentId,

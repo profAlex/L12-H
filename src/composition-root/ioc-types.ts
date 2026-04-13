@@ -16,8 +16,8 @@ export const TYPES = {
     UsersCommandRepository: Symbol.for("UsersCommandRepository"),
     CommentsQueryRepository: Symbol.for("CommentsQueryRepository"),
     CommentsCommandRepository: Symbol.for("CommentsCommandRepository"),
-    LikesCommandRepository: Symbol.for("LikesCommandRepository"),
-    LikesQueryRepository: Symbol.for("LikesQueryRepository"),
+    CommentsLikesCommandRepository: Symbol.for("CommentsLikesCommandRepository"),
+    CommentsLikesQueryRepository: Symbol.for("CommentsLikesQueryRepository"),
     PostsCommandRepository: Symbol.for("PostsCommandRepository"),
     PostsQueryRepository: Symbol.for("PostsQueryRepository"),
 

@@ -3,14 +3,14 @@ import { inject, injectable } from "inversify";
 import { TYPES } from "../composition-root/ioc-types";
 import { CommentViewModel } from "../routers/router-types/comment-view-model";
 import { CommentsQueryRepository } from "../repository-layers/query-repository-layer/comments-query-repository";
-import { LikesQueryRepository } from "../repository-layers/query-repository-layer/likes-query-repository";
-import { LikeDocument } from "../db/mongoose-like-collection-model";
+import { CommentsLikesQueryRepository } from "../repository-layers/query-repository-layer/comments-likes-query-repository";
+import { CommentLikeDocument } from "../db/mongoose-comments-like-collection-model";
 
 @injectable()
 export class CommentsQueryService {
 
     constructor(@inject(TYPES.CommentsQueryRepository) protected commentsQueryRepository:CommentsQueryRepository,
-                @inject(TYPES.LikesQueryRepository) protected likesQueryRepository:LikesQueryRepository,) {
+                @inject(TYPES.CommentsLikesQueryRepository) protected likesQueryRepository:CommentsLikesQueryRepository,) {
     }
 
     async findSingleComment(sentCommentId: string, sentUserId:string): Promise<CommentViewModel | undefined> {
@@ -22,7 +22,7 @@ export class CommentsQueryService {
         }
 
         // проверяем репозиторий лайков, смотрим была ли уже реакция на этот коммент от запрашивающего пользователя
-        const previousReactionResult: LikeDocument | null =
+        const previousReactionResult: CommentLikeDocument | null =
             await this.likesQueryRepository.checkIfUserAlreadyReacted(
                 sentUserId,
                 sentCommentId,
