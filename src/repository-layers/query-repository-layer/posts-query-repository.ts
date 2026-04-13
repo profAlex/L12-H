@@ -28,6 +28,8 @@ export class PostsQueryRepository {
     constructor(
         @inject(TYPES.CommentsQueryRepository)
         protected commentsQueryRepository: CommentsQueryRepository,
+        @inject(TYPES.CommentsLikesQueryRepository)
+        protected commentsLikesQueryRepository: CommentsLikesQueryRepository,
     ) {}
 
     async getSeveralCommentsByPostId(
@@ -35,8 +37,8 @@ export class PostsQueryRepository {
         sentUserId: string,
         sentSanitizedQuery: InputGetCommentsQueryModel,
     ): Promise<PaginatedCommentViewModel> {
-
-        const [items, totalCount] = await Promise.all([
+        // получаем массив комментариев к посту, а также общее количество комментов у поста
+        const [commentsList, totalCount] = await Promise.all([
             this.commentsQueryRepository.getSortedDocuments(
                 sentPostId,
                 sentSanitizedQuery,
@@ -44,92 +46,78 @@ export class PostsQueryRepository {
             this.commentsQueryRepository.getCountDocuments(sentPostId),
         ]);
 
-        // await CommentModel.find({ relatedPostId: sentPostId })
-        //     .sort({ [sortBy]: sortDirection === "asc" ? 1 : -1 })
-        //     .skip(skip)
-        //     .limit(pageSize)
-        //     .lean();
-        //
-        // const totalCount = await CommentModel.countDocuments({
-        //     relatedPostId: sentPostId,
+        // укорачиваем массив всех данных до массива исключительно айдишек комментов
+        const commentIds = commentsList.map((item) => item.id);
+        // получаем список всех реакций для комментов, где юзер эти реакции выставил
+        const reactionsListForUser = await this.commentsLikesQueryRepository.getReactionListForComments(commentIds, sentUserId);
+
+
+        // теперь нужно склеить информацию о заданных парамтерах поиска, массиве найденных комментов, дополненных информацией о реакции юзера (если был не анонимный запрос)
+        // const mappedItems = items.map(comment => {
+        //     const reaction = userReactions.find(r => r.commentId === comment.id);
+        //     return CommentMapper.toView(comment, reaction?.likeStatus || "None");
         // });
+        const { pageNumber, pageSize } =
+            sentSanitizedQuery;
 
-        const likesQueryRepository =
-            container.get<CommentsLikesQueryRepository>(
-                TYPES.CommentsLikesQueryRepository,
-            );
-
-        const itemsWithReactions = await Promise.all(
-            items.map(async (comment) => {
-                // ищем реакцию в базе
-                const reaction =
-                    await likesQueryRepository.checkIfUserAlreadyReacted(
-                        sentUserId,
-                        comment.id,
-                    );
-
-                // если реакции нет, оставляем текущий статус (None),
-                // если есть — берем статус из базы.
-                const newStatus = reaction
-                    ? reaction.likeStatus
-                    : comment.likesInfo.myStatus;
-
-                // возвращаем НОВЫЙ объект комментария
-                return {
-                    ...comment,
-                    likesInfo: {
-                        ...comment.likesInfo,
-                        myStatus: newStatus,
-                    },
-                };
-            }),
-        );
-
-        return mapToCommentListPaginatedOutput(itemsWithReactions, {
+        return mapToCommentListPaginatedOutput(commentsList, reactionsListForUser, {
             pageNumber: pageNumber,
             pageSize: pageSize,
             totalCount,
         });
+
+        // НИЖЕ ПРИМЕР ПЕРВОГО ВАРИАНТА - НЕОПТИМАЛЬНОГО ПОИСКА РЕАКЦИЙ: СКОЛЬКО БУДЕТ НАЙДЕНО КОММЕНТОВ - СТОЛЬКО БУДЕТ И ЗАПРОСОВ В КОЛЛЕКЦИЮ ЛАЙКОВ! ЭТО НЕЭФФЕКТИВНО!
+        // const likesQueryRepository =
+        //     container.get<CommentsLikesQueryRepository>(
+        //         TYPES.CommentsLikesQueryRepository,
+        //     );
+        // const itemsWithReactions = await Promise.all(
+        //     items.map(async (comment) => {
+        //         // ищем реакцию в базе
+        //         const reaction =
+        //             await likesQueryRepository.checkIfUserAlreadyReacted(
+        //                 sentUserId,
+        //                 comment.id,
+        //             );
+        //
+        //         // если реакции нет, оставляем текущий статус (None),
+        //         // если есть — берем статус из базы.
+        //         const newStatus = reaction
+        //             ? reaction.likeStatus
+        //             : comment.likesInfo.myStatus;
+        //
+        //         // возвращаем НОВЫЙ объект комментария
+        //         return {
+        //             ...comment,
+        //             likesInfo: {
+        //                 ...comment.likesInfo,
+        //                 myStatus: newStatus,
+        //             },
+        //         };
+        //     }),
+        // );
+
+
     }
 
     async getSeveralCommentsByPostIdAnonimously(
         sentPostId: string,
         sentSanitizedQuery: InputGetCommentsQueryModel,
     ): Promise<PaginatedCommentViewModel> {
-        const { sortBy, sortDirection, pageNumber, pageSize } =
-            sentSanitizedQuery;
-
-        const skip = (pageNumber - 1) * pageSize;
-
-        const items = await CommentModel.find({ relatedPostId: sentPostId })
-            .sort({ [sortBy]: sortDirection === "asc" ? 1 : -1 })
-            .skip(skip)
-            .limit(pageSize)
-            .lean();
-
-        const totalCount = await CommentModel.countDocuments({
-            relatedPostId: sentPostId,
-        });
-        // const items = await commentsCollection
-        //     .find({ relatedPostId: sentPostId })
-        //
-        //     // "asc" (по возрастанию), то используется 1
-        //     // "desc" — то -1 для сортировки по убыванию. - по алфавиту от Я-А, Z-A
-        //     .sort({ [sortBy]: sortDirection })
-        //
-        //     // пропускаем определённое количество док. перед тем, как вернуть нужный набор данных.
-        //     .skip(skip)
-        //
-        //     // ограничивает количество возвращаемых документов до значения pageSize
-        //     .limit(pageSize)
-        //     .toArray();
-
-        // const totalCount = await commentsCollection.countDocuments({
-        //     relatedPostId: sentPostId,
-        // });
+        // получаем массив комментариев к посту, а также общее количество комментов у поста
+        const [commentsList, totalCount] = await Promise.all([
+            this.commentsQueryRepository.getSortedDocuments(
+                sentPostId,
+                sentSanitizedQuery,
+            ),
+            this.commentsQueryRepository.getCountDocuments(sentPostId),
+        ]);
 
         //console.warn("WE GOT INSIDE getSeveralCommentsByPostIdAnonimously");
-        return mapToCommentListPaginatedOutput(items, {
+        const { pageNumber, pageSize } =
+            sentSanitizedQuery;
+
+        return mapToCommentListPaginatedOutput(commentsList, [], {
             pageNumber: pageNumber,
             pageSize: pageSize,
             totalCount,

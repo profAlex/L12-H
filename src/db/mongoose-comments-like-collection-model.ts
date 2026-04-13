@@ -61,7 +61,7 @@ const CommentLikeSchema = new Schema<CommentsLikesStorageModel>(
 
 // Уникальный составной индекс: один пользователь — один лайк на один комментарий.
 // Это критично, чтобы не плодить дубликаты при частых кликах.
-CommentLikeSchema.index({ commentId: 1, userId: 1 }, { unique: true });
+CommentLikeSchema.index({ userId: 1, commentId: 1, }, { unique: true });
 
 type CommentLikeModelType = Model<CommentsLikesStorageModel>;
 export type CommentLikeDocument = HydratedDocument<CommentsLikesStorageModel>;

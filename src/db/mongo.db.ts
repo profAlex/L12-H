@@ -23,7 +23,7 @@ const DB_NAME = "bloggers_db";
 
 
 // const URI ="mongodb+srv://admin:admin@learningcluster.f1zm90x.mongodb.net/?retryWrites=true&w=majority&appName=LearningCluster";
-const URI = "";
+const URI = "mongodb+srv://bolly198:kro8eJLuv9BR0QPl@newlearningcluster.1tnov1c.mongodb.net/?appName=NewLearningCluster"
 
 let db: Db | null = null;
 export let client: MongoClient | null = null;
