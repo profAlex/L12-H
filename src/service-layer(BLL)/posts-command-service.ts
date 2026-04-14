@@ -8,12 +8,16 @@ import { ObjectId } from "mongodb";
 import { HttpStatus } from "../common/http-statuses/http-statuses";
 import { PostsCommandRepository } from "../repository-layers/command-repository-layer/posts-command-repository";
 import { PostInputModel } from "../routers/router-types/post-input-model";
+import { CommentModel } from "../db/mongo.db";
+import { findUserByPrimaryKey } from "../repository-layers/query-repository-layer/users-query-repository";
+import { CommentsCommandRepository } from "../repository-layers/command-repository-layer/comments-command-repository";
 
 @injectable()
 export class PostsCommandService {
     constructor(
         @inject(TYPES.PostsCommandRepository)
         protected postsCommandRepository: PostsCommandRepository,
+        @inject(TYPES.CommentsCommandRepository) protected commentsCommandRepository:CommentsCommandRepository
     ) {}
 
     async createNewComment(
@@ -21,26 +25,58 @@ export class PostsCommandService {
         content: string,
         userId: string,
     ): Promise<CustomResult<CommentViewModel>> {
-        if (!ObjectId.isValid(userId) || !ObjectId.isValid(postId)) {
+
+        // findUserByPrimaryKey и юзера брать выше и спускать оттуда
+        const user = await findUserByPrimaryKey(new ObjectId(userId));
+
+        if (!user) {
             return {
                 data: null,
                 statusCode: HttpStatus.InternalServerError,
-                statusDescription:
-                    "User ID or Post ID dont look like valid mongo ID. Need to check input data and corresponding user and post records.",
+                statusDescription: "User not found",
                 errorsMessages: [
                     {
-                        field: "createNewComment -> if (!ObjectId.isValid(userId) || !ObjectId.isValid(postId))", // это служебная и отладочная информация, к ней НЕ должен иметь доступ фронтенд, обрабатываем внутри периметра работы бэкэнда
-                        message: "User ID or Post ID have invalid format",
+                        field: "const user = await findUserByPrimaryKey(new ObjectId(userId));", // это служебная и отладочная информация, к ней НЕ должен иметь доступ фронтенд, обрабатываем внутри периметра работы бэкэнда
+                        message: "User not found",
                     },
                 ],
             };
         }
 
-        return await this.postsCommandRepository.createNewComment(
-            postId,
+        const newComment = await CommentModel.createNewComment(postId,
             content,
-            userId,
-        );
+            { id: userId, login: user.login });
+
+        if (!(await this.commentsCommandRepository.saveNewComment(newComment))) {
+            return {
+                data: null,
+                statusCode: HttpStatus.InternalServerError,
+                statusDescription: "User couldn't be saved",
+                errorsMessages: [
+                    {
+                        field: "if (!(await this.commentsCommandRepository.saveNewComment(newComment)))", // это служебная и отладочная информация, к ней НЕ должен иметь доступ фронтенд, обрабатываем внутри периметра работы бэкэнда
+                        message: "User couldn't be saved",
+                    },
+                ],
+            };
+        }
+
+        return  {
+            data: {
+                id: newComment.id,
+                content: newComment.content,
+                commentatorInfo: newComment.commentatorInfo,
+                createdAt: newComment.createdAt,
+                likesInfo: newComment.likesInfo,
+            },
+            statusCode: HttpStatus.Created,
+            errorsMessages: [
+                {
+                    field: null,
+                    message: null,
+                },
+            ],
+        };
     }
 
     async createNewPost(newPost: PostInputModel): Promise<string | undefined> {

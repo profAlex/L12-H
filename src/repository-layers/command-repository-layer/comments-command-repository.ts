@@ -229,4 +229,18 @@ export class CommentsCommandRepository {
             return false;
         }
     }
+
+    async saveNewComment(comment: CommentDocument): Promise<boolean> {
+        try{
+            await comment.save();
+
+            return true;
+        } catch (error){
+            console.error(
+                `Error inside CommentsCommandRepository.saveNewComment: ${error instanceof Error ? error.message : "Unknown error"}`,
+            );
+
+            return false;
+        }
+    }
 }

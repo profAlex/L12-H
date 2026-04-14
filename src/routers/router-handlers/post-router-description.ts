@@ -95,7 +95,6 @@ export class PostsHandler {
         >,
         res: Response,
     ) => {
-        // проверка параметра URL: postId
         const postId = req.params[IdParamName.PostId];
         const { content } = req.body;
 

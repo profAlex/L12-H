@@ -2,6 +2,7 @@ import { Schema, model, Model, HydratedDocument } from "mongoose";
 import { CommentStorageModel } from "../routers/router-types/comment-storage-model";
 import { LikeStatus } from "../routers/router-types/comment-like-storage-model";
 import { COMMENTS_COLLECTION_NAME } from "./db-collection-names";
+import { CommentViewModel } from "../routers/router-types/comment-view-model";
 
 // export type CommentStorageModel = {
 //     _id: ObjectId;
@@ -30,7 +31,40 @@ import { COMMENTS_COLLECTION_NAME } from "./db-collection-names";
 //     myStatus: LikeStatus;
 // }
 
-const CommentSchema = new Schema<CommentStorageModel>(
+const commentMethods = {
+
+};
+
+const commentStatics = {
+    async createNewComment (
+        postId: string,
+        content: string,
+        user: { id: string; login: string }
+    ): Promise<CommentDocument> {
+
+        const newComment = new CommentModel({
+            relatedPostId: postId,
+            content: content,
+            commentatorInfo: {
+                userId: user.id,
+                userLogin: user.login
+            },
+            createdAt: new Date(),
+            likesInfo: {
+                likesCount: 0,
+                dislikesCount: 0,
+                myStatus: LikeStatus.None
+            }
+        });
+
+        return newComment;
+    }
+}
+
+type CommentStatics = typeof commentStatics;
+type CommentMethods = typeof commentMethods;
+
+const CommentSchema = new Schema<CommentStorageModel, CommentModelType, CommentMethods>(
     {
         _id: { type: Schema.Types.ObjectId, auto: true },
         id: {
@@ -65,9 +99,10 @@ const CommentSchema = new Schema<CommentStorageModel>(
     {
         collection: COMMENTS_COLLECTION_NAME,
         timestamps: false,
-        versionKey: false,
+        // versionKey: false,
         id: false,
         autoIndex: false, // Индексы создаем вручную в runDB
+        optimisticConcurrency: true
     },
 );
 
@@ -82,10 +117,13 @@ const CommentSchema = new Schema<CommentStorageModel>(
 // Составной индекс для быстрой пагинации (поиск по посту + сортировка по дате)
 CommentSchema.index({ relatedPostId: 1, createdAt: -1 });
 
-type CommentModelType = Model<CommentStorageModel>;
-export type CommentDocument = HydratedDocument<CommentStorageModel>;
+type CommentModelType = Model<CommentStorageModel, {}, CommentMethods> & CommentStatics;
+export type CommentDocument = HydratedDocument<CommentStorageModel, CommentMethods>;
 
 export const CommentModel = model<CommentStorageModel, CommentModelType>("Comment", CommentSchema, COMMENTS_COLLECTION_NAME);
+CommentSchema.methods = commentMethods;
+CommentSchema.statics = commentStatics;
+
 // console.log("🔍 Actual collection name for CommentModel:", CommentModel.collection.name);
 
 

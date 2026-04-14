@@ -8,6 +8,7 @@ import { InputGetCommentsQueryModel } from "../routers/router-types/comment-sear
 import { PaginatedCommentViewModel } from "../routers/router-types/comment-paginated-view-model";
 import { CommentModel } from "./mongo.db";
 import { ObjectId } from "mongodb";
+import { CommentViewModel } from "../routers/router-types/comment-view-model";
 
 // export type PostStorageModel = {
 //     _id: ObjectId;
@@ -34,31 +35,12 @@ import { ObjectId } from "mongodb";
 //     login: string;
 // };
 
-const userMethods = {
-    async getSeveralCommentsByPostId(
-        sentPostId: string,
-        sentSanitizedQuery: InputGetCommentsQueryModel,
-    ): Promise<(CommentStorageModel & Required<{ _id: ObjectId }> & { __v: number })[]> {
-        const { sortBy, sortDirection, pageNumber, pageSize } =
-            sentSanitizedQuery;
-
-        const skip = (pageNumber - 1) * pageSize;
-
-        const items = await CommentModel.find({ relatedPostId: sentPostId })
-            .sort({ [sortBy]: sortDirection === "asc" ? 1 : -1 })
-            .skip(skip)
-            .limit(pageSize)
-            .lean();
-
-        return items;
-    }
+const postMethods = {
 
 
 }
-        // это в статический метод
-        // const totalCount = await CommentModel.countDocuments({ relatedPostId: sentPostId });
 
-type PostMethods = typeof userMethods;
+type PostMethods = typeof postMethods;
 
 const postStatics = {
 
