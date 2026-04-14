@@ -6,18 +6,23 @@ import { CommentViewModel } from "../routers/router-types/comment-view-model";
 import { CustomResult } from "../common/result-type/result-type";
 import { ObjectId } from "mongodb";
 import { HttpStatus } from "../common/http-statuses/http-statuses";
-import { PostsCommandRepository } from "../repository-layers/command-repository-layer/posts-command-repository";
+import {
+    findBlogByPrimaryKey,
+    PostsCommandRepository,
+} from "../repository-layers/command-repository-layer/posts-command-repository";
 import { PostInputModel } from "../routers/router-types/post-input-model";
 import { CommentModel } from "../db/mongo.db";
 import { findUserByPrimaryKey } from "../repository-layers/query-repository-layer/users-query-repository";
 import { CommentsCommandRepository } from "../repository-layers/command-repository-layer/comments-command-repository";
+import { PostModel } from "../db/mongoose-post-collection-model";
 
 @injectable()
 export class PostsCommandService {
     constructor(
         @inject(TYPES.PostsCommandRepository)
         protected postsCommandRepository: PostsCommandRepository,
-        @inject(TYPES.CommentsCommandRepository) protected commentsCommandRepository:CommentsCommandRepository
+        @inject(TYPES.CommentsCommandRepository)
+        protected commentsCommandRepository: CommentsCommandRepository,
     ) {}
 
     async createNewComment(
@@ -25,7 +30,6 @@ export class PostsCommandService {
         content: string,
         userId: string,
     ): Promise<CustomResult<CommentViewModel>> {
-
         // findUserByPrimaryKey и юзера брать выше и спускать оттуда
         const user = await findUserByPrimaryKey(new ObjectId(userId));
 
@@ -43,11 +47,15 @@ export class PostsCommandService {
             };
         }
 
-        const newComment = await CommentModel.createNewComment(postId,
+        const newComment = await CommentModel.createNewComment(
+            postId,
             content,
-            { id: userId, login: user.login });
+            { id: userId, login: user.login },
+        );
 
-        if (!(await this.commentsCommandRepository.saveNewComment(newComment))) {
+        if (
+            !(await this.commentsCommandRepository.saveNewComment(newComment))
+        ) {
             return {
                 data: null,
                 statusCode: HttpStatus.InternalServerError,
@@ -61,7 +69,7 @@ export class PostsCommandService {
             };
         }
 
-        return  {
+        return {
             data: {
                 id: newComment.id,
                 content: newComment.content,
@@ -79,8 +87,38 @@ export class PostsCommandService {
         };
     }
 
-    async createNewPost(newPost: PostInputModel): Promise<string | undefined> {
-        return await this.postsCommandRepository.createNewPost(newPost);
+    async createNewPost(
+        requestBody: PostInputModel,
+    ): Promise<string | undefined> {
+        // это тоже надо спускать из хэндлера? или из blogCommandRepository, вызывая его через инжектированный экземпляр
+        try {
+            const relatedBlogger = await findBlogByPrimaryKey(
+                new ObjectId(requestBody.blogId),
+            );
+            if (!relatedBlogger) {
+                console.warn("Blog not found");
+                return undefined;
+            }
+
+            const blogName = relatedBlogger.name;
+
+            const newPost = await PostModel.createNewPost(
+                blogName,
+                requestBody,
+            );
+
+            if (!(await this.postsCommandRepository.saveNewPost(newPost))) {
+                console.warn("Couldn't create new post not found");
+                return undefined;
+            }
+
+            return newPost.id;
+        } catch (error) {
+            console.warn(
+                `Error while creating post: ${error instanceof Error ? error.message : "unknown error"}`,
+            );
+            return undefined;
+        }
     }
 
     async updatePost(postId: string, newData: PostInputModel) {

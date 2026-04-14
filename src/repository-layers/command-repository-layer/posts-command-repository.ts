@@ -10,8 +10,9 @@ import { LikeStatus } from "../../routers/router-types/comment-like-storage-mode
 import { PostInputModel } from "../../routers/router-types/post-input-model";
 import { BloggerCollectionStorageModel } from "./command-repository";
 import { CustomError } from "../utility/custom-error-class";
+import { PostDocument } from "../../db/mongoose-post-collection-model";
 
-async function findBlogByPrimaryKey(
+export async function findBlogByPrimaryKey(
     id: ObjectId,
 ): Promise<BloggerCollectionStorageModel | null> {
     return bloggersCollection.findOne({ _id: id });
@@ -135,73 +136,18 @@ export class PostsCommandRepository {
     // }
 
 
-    async createNewPost(newPost: PostInputModel): Promise<string | undefined> {
-        try {
-            if (ObjectId.isValid(newPost.blogId)) {
-                const relatedBlogger = await findBlogByPrimaryKey(
-                    new ObjectId(newPost.blogId),
-                );
-                const tempId = new ObjectId();
 
-                if (relatedBlogger) {
-                    const newPostEntry = {
-                        _id: tempId,
-                        id: tempId.toString(),
-                        ...newPost,
-                        blogName: relatedBlogger.name,
-                        createdAt: new Date(),
-                    };
+    async saveNewPost(newPost: PostDocument): Promise<boolean> {
+        try{
+            await newPost.save();
 
-                    const result =
-                        await postsCollection.insertOne(newPostEntry);
-                    if (!result.acknowledged) {
-                        throw new CustomError({
-                            errorMessage: {
-                                field: "postsCollection.insertOne(newPostEntry)",
-                                message:
-                                    "attempt to insert new post entry failed",
-                            },
-                        });
-                    }
+            return true;
+        } catch (error){
+            console.error(
+                `Error inside PostsCommandRepository.saveNewPost: ${error instanceof Error ? error.message : "Unknown error"}`,
+            );
 
-                    return result.insertedId.toString();
-                } else {
-                    throw new CustomError({
-                        errorMessage: {
-                            field: "findBlogByPrimaryKey(new ObjectId(newPost.blogId))",
-                            message: "attempt to find blogger failed",
-                        },
-                    });
-                }
-            } else {
-                throw new CustomError({
-                    errorMessage: {
-                        field: "ObjectId.isValid(newPost.blogId)",
-                        message: "invalid blogId",
-                    },
-                });
-            }
-        } catch (error) {
-            if (error instanceof CustomError) {
-                if (error.metaData) {
-                    const errorData = error.metaData.errorMessage;
-                    console.error(
-                        `In field: ${errorData.field} - ${errorData.message}`,
-                    );
-                } else {
-                    console.error(`Unknown error: ${JSON.stringify(error)}`);
-                }
-
-                // throw new Error('Placeholder for an error in to be rethrown and dealt with in the future in createNewBlog method of dataCommandRepository');
-                return undefined;
-            } else {
-                console.error(
-                    `Unknown error inside dataCommandRepository.createNewPost: ${JSON.stringify(error)}`,
-                );
-                throw new Error(
-                    "Placeholder for an error to be rethrown and dealt with in the future in createNewPost method of dataCommandRepository",
-                );
-            }
+            return false;
         }
     }
 

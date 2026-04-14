@@ -9,6 +9,7 @@ import { PaginatedCommentViewModel } from "../routers/router-types/comment-pagin
 import { CommentModel } from "./mongo.db";
 import { ObjectId } from "mongodb";
 import { CommentViewModel } from "../routers/router-types/comment-view-model";
+import { PostInputModel } from "../routers/router-types/post-input-model";
 
 // export type PostStorageModel = {
 //     _id: ObjectId;
@@ -40,13 +41,33 @@ const postMethods = {
 
 }
 
-type PostMethods = typeof postMethods;
+    // "title": "string",
+    // "shortDescription": "string",
+    // "content": "string",
+    // "blogId": "string"
 
 const postStatics = {
+    async createNewPost (
+        blogName: string,
+        bodyData: PostInputModel
+    ): Promise<PostDocument> {
 
+        const {title, shortDescription, content, blogId} = bodyData;
+
+        const newPost = new PostModel();
+        newPost.id = newPost._id.toString();
+        newPost.shortDescription = shortDescription;
+        newPost.title = title;
+        newPost.blogId = blogId;
+        newPost.blogName = blogName;
+        newPost.createdAt = new Date();
+
+        return newPost;
+    }
 };
 
-type PostStatic = typeof postStatics;
+type PostMethods = typeof postMethods;
+type PostStatics = typeof postStatics;
 
 const PostSchema = new Schema<PostStorageModel>(
     {
@@ -54,6 +75,9 @@ const PostSchema = new Schema<PostStorageModel>(
         id: {
             type: String,
             required: true,
+            default: function (this: any) {
+                return this._id ? this._id.toString() : "undefined";
+            },
         },
         shortDescription: { type: String, required: true },
         content: { type: String, required: true },
@@ -93,8 +117,6 @@ const PostSchema = new Schema<PostStorageModel>(
 );
 
 
-
-
 // эта часть понадобится если платформенные тесты будут валиться изза обнаружения полей версии __v
 // PostSchema.set('toJSON', {
 //     transform: (doc, ret: Partial<PostStorageModel & { __v: number }>) => {
@@ -109,13 +131,14 @@ const PostSchema = new Schema<PostStorageModel>(
 //     }
 // });
 
+
 // по-большому счету хук с заполнением поля id - ненужная перестраховка - я создаю поля документа полностью самостоятельно перед .save()
 // тут логичнее было бы как раз проверить создано ли поле
 // и если поля нет, тогда выдать соответствующую ошибку, что свидетельствовало бы о том что в коде ошибка
 PostSchema.pre("validate", async function (this: any) {
     if (!this.id) {
         throw new Error(
-            "Internal architecture Error: id must be initialized before validation",
+            "Internal architecture Error: id in new post must be initialized before validation",
         );
     }
 });
@@ -123,7 +146,9 @@ PostSchema.pre("validate", async function (this: any) {
 PostSchema.index({ blogId: 1, createdAt: -1 });
 
 
-type PostModelType = Model<PostStorageModel>;
-export type PostDocument = HydratedDocument<PostStorageModel>;
+type PostModelType = Model<PostStorageModel, {}, PostMethods> & PostStatics;
+export type PostDocument = HydratedDocument<PostStorageModel, PostMethods>;
 
 export const PostModel = model<PostStorageModel, PostModelType>("Post", PostSchema, POSTS_COLLECTION_NAME);
+PostSchema.methods = postMethods;
+PostSchema.statics = postStatics;

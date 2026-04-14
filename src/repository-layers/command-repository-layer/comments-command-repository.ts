@@ -230,9 +230,9 @@ export class CommentsCommandRepository {
         }
     }
 
-    async saveNewComment(comment: CommentDocument): Promise<boolean> {
+    async saveNewComment(newComment: CommentDocument): Promise<boolean> {
         try{
-            await comment.save();
+            await newComment.save();
 
             return true;
         } catch (error){
