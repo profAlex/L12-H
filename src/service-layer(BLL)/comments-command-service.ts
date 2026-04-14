@@ -8,7 +8,7 @@ import { HttpStatus } from "../common/http-statuses/http-statuses";
 import { CommentDocument } from "../db/mongoose-comment-collection-model";
 import { CommentViewModel } from "../routers/router-types/comment-view-model";
 import { LikeStatus } from "../routers/router-types/comment-like-storage-model";
-import { LikesCommandRepository } from "../repository-layers/command-repository-layer/likes-command-repository";
+import { CommentsLikesCommandRepository } from "../repository-layers/command-repository-layer/comments-likes-command-repository";
 import { CommentLikeDocument, CommentLikeModel } from "../db/mongoose-comments-like-collection-model";
 
 @injectable()
@@ -17,7 +17,7 @@ export class CommentsCommandService {
         @inject(TYPES.CommentsCommandRepository)
         protected commentsCommandRepository: CommentsCommandRepository,
         @inject(TYPES.CommentsLikesCommandRepository)
-        protected likesCommandRepository: LikesCommandRepository,
+        protected likesCommandRepository: CommentsLikesCommandRepository,
     ) {}
 
     async updateCommentById(

@@ -17,6 +17,7 @@ import { InputGetCommentsQueryModel } from "../router-types/comment-search-input
 import { TYPES } from "../../composition-root/ioc-types";
 import { PostsQueryService } from "../../service-layer(BLL)/posts-query-service";
 import { PostsCommandService } from "../../service-layer(BLL)/posts-command-service";
+import { PaginatedPostViewModel } from "../router-types/post-paginated-view-model";
 
 @injectable()
 export class PostsHandler {
@@ -149,10 +150,28 @@ export class PostsHandler {
         }); //утилита для извечения трансформированных значений после валидатара
         //в req.query остаются сырые квери параметры (строки)
 
-        const postsListOutput =
-            await this.postsQueryService.getSeveralPosts(sanitizedQuery);
+        // const postsListOutput =
+        //     await this.postsQueryService.getSeveralPosts(sanitizedQuery);
 
-        res.status(HttpStatus.Ok).send(postsListOutput);
+        // проверка - null возвращается из гварда, если обращение идет от незалогиненого пользователя, этот случай обрабатывается отдельно
+        if (req.user!.userId === null) {
+            // console.warn();
+            const postsListOutput: PaginatedPostViewModel =
+                await this.postsQueryService.getSeveralPostsAnonimously(
+                    sanitizedQuery,
+                );
+
+            res.status(HttpStatus.Ok).send(postsListOutput);
+        } else {
+            const postsListOutput: PaginatedPostViewModel =
+                await this.postsQueryService.getSeveralPosts(
+                    req.user!.userId,
+                    sanitizedQuery,
+                );
+
+            res.status(HttpStatus.Ok).send(postsListOutput);
+        }
+
     };
 
     // немного другой способ создания поста, делает то же что и createNewBlogPost, но другой способ передачи blog ID - он передается внутри req.body

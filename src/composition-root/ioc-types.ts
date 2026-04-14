@@ -20,6 +20,8 @@ export const TYPES = {
     CommentsLikesQueryRepository: Symbol.for("CommentsLikesQueryRepository"),
     PostsCommandRepository: Symbol.for("PostsCommandRepository"),
     PostsQueryRepository: Symbol.for("PostsQueryRepository"),
+    PostsLikesCommandRepository: Symbol.for("PostsLikesCommandRepository"),
+    PostsLikesQueryRepository: Symbol.for("PostsLikesQueryRepository"),
 
     // Handlers (Controller logic)
     UsersHandler: Symbol.for("UsersHandler"),

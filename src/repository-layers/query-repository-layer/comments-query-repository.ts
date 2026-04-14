@@ -1,4 +1,4 @@
-import { inject, injectable } from "inversify";
+import { injectable } from "inversify";
 import { mapSingleCommentToViewModel } from "../mappers/map-to-CommentViewModel";
 import { CommentViewModel } from "../../routers/router-types/comment-view-model";
 import { isValidObjectId } from "mongoose";
@@ -6,6 +6,7 @@ import { CommentModel } from "../../db/mongo.db";
 import { InputGetCommentsQueryModel } from "../../routers/router-types/comment-search-input-query-model";
 import { CommentStorageModel } from "../../routers/router-types/comment-storage-model";
 import { ObjectId } from "mongodb";
+import { CustomSortDirection } from "../../routers/util-enums/sort-direction";
 
 @injectable()
 export class CommentsQueryRepository {
@@ -27,20 +28,23 @@ export class CommentsQueryRepository {
         return undefined;
     }
 
-    async getCountDocuments(sentPostId: string): Promise<number> {
+    async getCommentsCount(sentPostId: string): Promise<number> {
         return CommentModel.countDocuments({ relatedPostId: sentPostId });
     }
 
-    async getSortedDocuments(
+    async getSortedComments(
         sentPostId: string,
         sentSanitizedQuery: InputGetCommentsQueryModel,
-    ): Promise<(CommentStorageModel & { _id: ObjectId})[]> {
+    ): Promise<(CommentStorageModel & { _id: ObjectId })[]> {
         const { sortBy, sortDirection, pageNumber, pageSize } =
             sentSanitizedQuery;
 
         const skip = (pageNumber - 1) * pageSize;
         return CommentModel.find({ relatedPostId: sentPostId })
-            .sort({ [sortBy]: sortDirection === "asc" ? 1 : -1 })
+            .sort({
+                [sortBy]:
+                    sortDirection === CustomSortDirection.Ascending ? 1 : -1,
+            })
             .skip(skip)
             .limit(pageSize)
             .lean();

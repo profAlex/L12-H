@@ -20,7 +20,7 @@ import { CommentsQueryRepository } from "../repository-layers/query-repository-l
 import { CommentsLikesQueryRepository } from "../repository-layers/query-repository-layer/comments-likes-query-repository";
 import { CommentsCommandService } from "../service-layer(BLL)/comments-command-service";
 import { CommentsCommandRepository } from "../repository-layers/command-repository-layer/comments-command-repository";
-import { LikesCommandRepository } from "../repository-layers/command-repository-layer/likes-command-repository";
+import { CommentsLikesCommandRepository } from "../repository-layers/command-repository-layer/comments-likes-command-repository";
 import { PostsHandler } from "../routers/router-handlers/post-router-description";
 import { PostsCommandService } from "../service-layer(BLL)/posts-command-service";
 import { PostsQueryRepository } from "../repository-layers/query-repository-layer/posts-query-repository";
@@ -88,7 +88,7 @@ container.bind(TYPES.UsersCommandRepository).to(UsersCommandRepository).inSingle
 container.bind(TYPES.CommentsQueryRepository).to(CommentsQueryRepository).inSingletonScope();
 container.bind(TYPES.CommentsCommandRepository).to(CommentsCommandRepository).inSingletonScope();
 container.bind(TYPES.CommentsLikesQueryRepository).to(CommentsLikesQueryRepository).inSingletonScope();
-container.bind(TYPES.CommentsLikesCommandRepository).to(LikesCommandRepository).inSingletonScope();
+container.bind(TYPES.CommentsLikesCommandRepository).to(CommentsLikesCommandRepository).inSingletonScope();
 container.bind(TYPES.PostsQueryRepository).to(PostsQueryRepository).inSingletonScope();
 container.bind(TYPES.PostsCommandRepository).to(PostsCommandRepository).inSingletonScope();
 

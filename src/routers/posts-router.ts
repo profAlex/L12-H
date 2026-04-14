@@ -61,6 +61,7 @@ export const getPostsRouter = (postsHandler: PostsHandler) => {
     // Returns all posts
     postsRouter.get(
         "/",
+        optionalAccessTokenGuard,
         inputPaginationValidatorForPosts(PostsSortListEnum),
         inputErrorManagementMiddleware,
         postsHandler.getSeveralPosts,

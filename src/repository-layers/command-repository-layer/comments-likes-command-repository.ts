@@ -2,7 +2,7 @@ import { inject, injectable } from "inversify";
 import { CommentLikeDocument, CommentLikeModel } from "../../db/mongoose-comments-like-collection-model";
 
 @injectable()
-export class LikesCommandRepository {
+export class CommentsLikesCommandRepository {
 
     async checkIfUserAlreadyReacted(sentUserId: string, sentCommentId: string): Promise<CommentLikeDocument | null> {
         return CommentLikeModel.findOne({

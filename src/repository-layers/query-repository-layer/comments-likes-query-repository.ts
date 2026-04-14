@@ -12,17 +12,17 @@ import { CommentsLikesStorageModel } from "../../routers/router-types/comment-li
 
 @injectable()
 export class CommentsLikesQueryRepository {
-    async checkIfUserAlreadyReacted(
-        sentUserId: string,
-        sentCommentId: string,
-    ): Promise<CommentLikeDocument | null> {
-        return CommentLikeModel.findOne({
-            userId: sentUserId,
-            commentId: sentCommentId,
-        });
-    }
+    // async checkIfUserAlreadyReacted(
+    //     sentUserId: string,
+    //     sentCommentId: string,
+    // ): Promise<CommentLikeDocument | null> {
+    //     return CommentLikeModel.findOne({
+    //         userId: sentUserId,
+    //         commentId: sentCommentId,
+    //     });
+    // }
 
-    // метод для поиска реакций для заданного перечня комментов(выбранного по айди поста, в методе commentsQueryRepository.getSortedDocuments) от определенного юзера во всей коллекции лайков-дизлайков
+    // метод для поиска реакций для заданного перечня комментов(выбранного по айди поста, в методе commentsQueryRepository.getSortedComments) от определенного юзера во всей коллекции лайков-дизлайков
     async getReactionListForComments(
         sentCommentIds: string[],
         sentUserId: string,

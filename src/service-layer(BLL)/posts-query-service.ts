@@ -39,10 +39,22 @@ export class PostsQueryService {
         );
     }
 
-    async getSeveralPosts(
+    async getSeveralPostsAnonimously(
         sentSanitizedQuery: InputGetBlogPostsByIdQuery,
     ): Promise<PaginatedPostViewModel> {
-        return this.postsQueryRepository.getSeveralPosts(sentSanitizedQuery);
+        return this.postsQueryRepository.getSeveralPostsAnonimously(
+            sentSanitizedQuery,
+        );
+    }
+
+    async getSeveralPosts(
+        sentUserId: string,
+        sentSanitizedQuery: InputGetBlogPostsByIdQuery,
+    ): Promise<PaginatedPostViewModel> {
+        return this.postsQueryRepository.getSeveralPosts(
+            sentUserId,
+            sentSanitizedQuery,
+        );
     }
 
     async findSinglePost(postId: string): Promise<PostViewModel | undefined> {

@@ -12,7 +12,8 @@ export function mapToCommentListPaginatedOutput(
     metaData: { pageNumber: number; pageSize: number; totalCount: number },
 ): PaginatedCommentViewModel {
 
-    // создаем Map для мгновенного поиска реакции по ID комментария (O(1))
+    // создаем Map для мгновенного поиска реакции по ID комментария (O(1)),
+    // чтобы не пользоваться каждый раз find-ом
     const reactionsMap = new Map(
         reactionsList.map(r => [r.commentId.toString(), r.likeStatus])
     );
