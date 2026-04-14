@@ -89,7 +89,7 @@ export class PostsCommandService {
 
     async createNewPost(
         requestBody: PostInputModel,
-    ): Promise<string | undefined> {
+    ): Promise<string | null> {
         // это тоже надо спускать из хэндлера? или из blogCommandRepository, вызывая его через инжектированный экземпляр
         try {
             const relatedBlogger = await findBlogByPrimaryKey(
@@ -97,7 +97,7 @@ export class PostsCommandService {
             );
             if (!relatedBlogger) {
                 console.warn("Blog not found");
-                return undefined;
+                return null;
             }
 
             const blogName = relatedBlogger.name;
@@ -107,9 +107,9 @@ export class PostsCommandService {
                 requestBody,
             );
 
-            if (!(await this.postsCommandRepository.saveNewPost(newPost))) {
+            if (!(await this.postsCommandRepository.savePostData(newPost))) {
                 console.warn("Couldn't create new post not found");
-                return undefined;
+                return null;
             }
 
             return newPost.id;
@@ -117,12 +117,26 @@ export class PostsCommandService {
             console.warn(
                 `Error while creating post: ${error instanceof Error ? error.message : "unknown error"}`,
             );
-            return undefined;
+            return null;
         }
     }
 
-    async updatePost(postId: string, newData: PostInputModel) {
-        return await this.postsCommandRepository.updatePost(postId, newData);
+    async updatePost(postId: string, newData: PostInputModel): Promise<boolean | null> {
+        try {
+            const post = await this.postsCommandRepository.getPostById(postId);
+            if (!post) return null;
+
+            post.updatePost(newData);
+
+            await this.postsCommandRepository.savePostData(post);
+
+            return true;
+        } catch (error) {
+            console.warn(
+                `Error while updating post: ${error instanceof Error ? error.message : "unknown error"}`,
+            );
+            return null;
+        }
     }
 
     async deletePost(postId: string): Promise<null | undefined> {

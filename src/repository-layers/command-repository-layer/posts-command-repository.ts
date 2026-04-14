@@ -10,7 +10,9 @@ import { LikeStatus } from "../../routers/router-types/comment-like-storage-mode
 import { PostInputModel } from "../../routers/router-types/post-input-model";
 import { BloggerCollectionStorageModel } from "./command-repository";
 import { CustomError } from "../utility/custom-error-class";
-import { PostDocument } from "../../db/mongoose-post-collection-model";
+import { PostDocument, PostModel } from "../../db/mongoose-post-collection-model";
+import { PostViewModel } from "../../routers/router-types/post-view-model";
+import { mapSinglePostCollectionToViewModel } from "../mappers/map-to-PostViewModel";
 
 export async function findBlogByPrimaryKey(
     id: ObjectId,
@@ -137,18 +139,23 @@ export class PostsCommandRepository {
 
 
 
-    async saveNewPost(newPost: PostDocument): Promise<boolean> {
+    async savePostData(newData: PostDocument): Promise<boolean> {
         try{
-            await newPost.save();
+            await newData.save();
 
             return true;
         } catch (error){
             console.error(
-                `Error inside PostsCommandRepository.saveNewPost: ${error instanceof Error ? error.message : "Unknown error"}`,
+                `Error inside PostsCommandRepository.savePostData: ${error instanceof Error ? error.message : "Unknown error"}`,
             );
 
             return false;
         }
+    }
+
+
+    async getPostById(id: string): Promise<PostDocument | null> {
+        return PostModel.findById(id); // возвращаем полноценный документ для работы с его методами, полями и последующего сохранения
     }
 
 

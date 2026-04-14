@@ -1,14 +1,7 @@
 import { CallbackError, HydratedDocument, model, Model, Schema } from "mongoose";
 import { PostStorageModel } from "../routers/router-types/post-storage-model";
-import { Request, Response, NextFunction, json } from "express";
 import { LikeStatus } from "../routers/router-types/comment-like-storage-model";
 import { POSTS_COLLECTION_NAME } from "./db-collection-names";
-import { CommentStorageModel } from "../routers/router-types/comment-storage-model";
-import { InputGetCommentsQueryModel } from "../routers/router-types/comment-search-input-query-model";
-import { PaginatedCommentViewModel } from "../routers/router-types/comment-paginated-view-model";
-import { CommentModel } from "./mongo.db";
-import { ObjectId } from "mongodb";
-import { CommentViewModel } from "../routers/router-types/comment-view-model";
 import { PostInputModel } from "../routers/router-types/post-input-model";
 
 // export type PostStorageModel = {
@@ -38,15 +31,28 @@ import { PostInputModel } from "../routers/router-types/post-input-model";
 
 const postMethods = {
 
+    // "title": "string",
+    // "shortDescription": "string",
+    // "content": "string",
+    // "blogId": "string"
+    updatePost(bodyData: PostInputModel) {
+        const { title, shortDescription, content, blogId } = bodyData;
+
+        (this as PostDocument).title = title;
+        (this as PostDocument).shortDescription = shortDescription;
+        (this as PostDocument).content = content;
+        (this as PostDocument).blogId = blogId;
+    }
 
 }
+
+
+const postStatics = {
 
     // "title": "string",
     // "shortDescription": "string",
     // "content": "string",
     // "blogId": "string"
-
-const postStatics = {
     async createNewPost (
         blogName: string,
         bodyData: PostInputModel

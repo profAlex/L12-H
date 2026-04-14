@@ -232,12 +232,13 @@ export class PostsHandler {
                 ? req.params[IdParamName.PostId]
                 : req.params[IdParamName.PostId][0];
 
+
         const result = await this.postsCommandService.updatePost(
             postId,
             req.body,
         );
 
-        if (result === undefined) {
+        if (result === null) {
             res.sendStatus(HttpStatus.NotFound);
         }
 
