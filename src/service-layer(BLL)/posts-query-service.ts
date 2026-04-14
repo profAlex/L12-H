@@ -57,7 +57,16 @@ export class PostsQueryService {
         );
     }
 
-    async findSinglePost(postId: string): Promise<PostViewModel | undefined> {
-        return this.postsQueryRepository.findSinglePost(postId);
+    async findSinglePostAnonimously(
+        postId: string,
+    ): Promise<PostViewModel | null> {
+        return this.postsQueryRepository.findSinglePostAnonimously(postId);
+    }
+
+    async findSinglePost(
+        postId: string,
+        userId: string,
+    ): Promise<PostViewModel | null> {
+        return this.postsQueryRepository.findSinglePost(postId, userId);
     }
 }

@@ -216,16 +216,33 @@ export class PostsQueryRepository {
         });
     }
 
-    async findSinglePost(postId: string): Promise<PostViewModel | undefined> {
-        if (ObjectId.isValid(postId)) {
-            const post: PostCollectionStorageModel | null =
-                await findPostByPrimaryKey(new ObjectId(postId));
+    async findSinglePost(
+        postId: string,
+        userId: string,
+    ): Promise<PostViewModel | null> {
+        const userReaction = await this.postsLikesQueryRepository.findReaction(
+            postId,
+            userId,
+        );
 
-            if (post) {
-                return mapSinglePostCollectionToViewModel(post);
-            }
+        const post = await PostModel.findById(postId).lean();
+
+        if (post) {
+            return mapSinglePostCollectionToViewModel(post, userReaction);
         }
 
-        return undefined;
+        return null;
+    }
+
+    async findSinglePostAnonimously(
+        postId: string,
+    ): Promise<PostViewModel | null> {
+        const post = await PostModel.findById(postId).lean();
+
+        if (post) {
+            return mapSinglePostCollectionToViewModel(post, null);
+        }
+
+        return null;
     }
 }

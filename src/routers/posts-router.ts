@@ -79,6 +79,7 @@ export const getPostsRouter = (postsHandler: PostsHandler) => {
     // return post by post-id
     postsRouter.get(
         `/:${IdParamName.PostId}`, // здесь было просто id
+        optionalAccessTokenGuard,
         validateParameterPostId,
         inputErrorManagementMiddleware,
         postsHandler.findSinglePost,

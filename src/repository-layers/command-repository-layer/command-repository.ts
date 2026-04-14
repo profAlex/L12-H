@@ -230,29 +230,29 @@ export const dataCommandRepository = {
     // *****************************
     // методы для управления постами
     // *****************************
-    async getAllPosts(): Promise<PostViewModel[] | []> {
-        const tempContainer: PostCollectionStorageModel[] | [] =
-            await postsCollection.find({}).toArray();
-
-        return tempContainer.map((value: PostCollectionStorageModel) => ({
-            id: value._id.toString(),
-            title: value.title,
-            shortDescription: value.shortDescription,
-            content: value.content,
-            blogId: value.blogId,
-            blogName: value.blogName,
-            createdAt: value.createdAt,
-        }));
-
-        // _id: ObjectId,
-        // id: string;
-        // title: string;
-        // shortDescription: string;
-        // content: string;
-        // blogId: string;
-        // blogName: string;
-        // createdAt: Date;
-    },
+    // async getAllPosts(): Promise<PostViewModel[] | []> {
+    //     const tempContainer: PostCollectionStorageModel[] | [] =
+    //         await postsCollection.find({}).toArray();
+    //
+    //     return tempContainer.map((value: PostCollectionStorageModel) => ({
+    //         id: value._id.toString(),
+    //         title: value.title,
+    //         shortDescription: value.shortDescription,
+    //         content: value.content,
+    //         blogId: value.blogId,
+    //         blogName: value.blogName,
+    //         createdAt: value.createdAt,
+    //     }));
+    //
+    //     // _id: ObjectId,
+    //     // id: string;
+    //     // title: string;
+    //     // shortDescription: string;
+    //     // content: string;
+    //     // blogId: string;
+    //     // blogName: string;
+    //     // createdAt: Date;
+    // },
 
     // async createNewPost(newPost: PostInputModel): Promise<string | undefined> {
     //     try {
@@ -346,7 +346,8 @@ export const dataCommandRepository = {
                     } as PostCollectionStorageModel;
 
                     const result =
-                        await postsCollection.insertOne(newPostEntry);
+                        // здесь ниже не as any!!! это просто затычка
+                        await postsCollection.insertOne(newPostEntry as any);
                     if (!result.acknowledged) {
                         throw new CustomError({
                             errorMessage: {

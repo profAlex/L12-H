@@ -183,7 +183,7 @@ export class PostsHandler {
         if (insertedId) {
             // а вот здесь уже идем в PostsQueryService с айдишником который нам вернул this.postsCommandService.createNewPost
             const result =
-                await this.postsQueryService.findSinglePost(insertedId);
+                await this.postsQueryService.findSinglePostAnonimously(insertedId);
 
             if (result) {
                 res.status(HttpStatus.Created).json(result);
@@ -203,13 +203,27 @@ export class PostsHandler {
                 ? req.params[IdParamName.PostId]
                 : req.params[IdParamName.PostId][0];
 
-        const result = await this.postsQueryService.findSinglePost(postId);
+        // проверка - null возвращается из гварда, если обращение идет от незалогиненого пользователя, этот случай обрабатывается отдельно
+        if (req.user!.userId === null) {
 
-        if (result === undefined) {
-            res.sendStatus(HttpStatus.NotFound);
+            const searchResult = await this.postsQueryService.findSinglePostAnonimously(postId);
+
+            if (searchResult === null) {
+                res.sendStatus(HttpStatus.NotFound);
+            }
+
+            res.status(HttpStatus.Ok).json(searchResult);
+        } else {
+
+            const searchResult = await this.postsQueryService.findSinglePost(postId, req.user!.userId );
+
+            if (searchResult === null) {
+                res.sendStatus(HttpStatus.NotFound);
+            }
+
+            res.status(HttpStatus.Ok).json(searchResult);
         }
 
-        res.status(HttpStatus.Ok).json(result);
     };
 
     public updatePost = async (req: Request, res: Response) => {
