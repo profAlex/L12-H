@@ -7,8 +7,9 @@ import { InputGetPostsQuery } from "../router-types/post-search-input-model";
 import { matchedData } from "express-validator";
 import { UserIdType } from "../router-types/user-id-type";
 import {
+    RequestWithParamsAndBody,
     RequestWithParamsAndBodyAndUserId,
-    RequestWithParamsAndQuery,
+    RequestWithParamsAndQuery
 } from "../request-types/request-types";
 import { CommentInputModel } from "../router-types/comment-input-model";
 import { IdParamName } from "../util-enums/id-names";
@@ -18,6 +19,7 @@ import { TYPES } from "../../composition-root/ioc-types";
 import { PostsQueryService } from "../../service-layer(BLL)/posts-query-service";
 import { PostsCommandService } from "../../service-layer(BLL)/posts-command-service";
 import { PaginatedPostViewModel } from "../router-types/post-paginated-view-model";
+import { PostLikeInputModel } from "../router-types/posts-like-input-model";
 
 @injectable()
 export class PostsHandler {
@@ -259,4 +261,31 @@ export class PostsHandler {
 
         res.sendStatus(HttpStatus.NoContent);
     };
+
+    public likePostById = async (req: RequestWithParamsAndBody<{[IdParamName.PostId]:string},PostLikeInputModel>, res: Response) => {
+        if (!req.user || !req.user.userId) {
+            console.error({
+                message:
+                    "Required parameter is missing: 'req.user or req.user.userId' inside ComentsHandler.likeCommentById",
+                field: "'if (!req.user || !req.user.userId)' check failed",
+            });
+
+            return res.status(HttpStatus.InternalServerError).json({
+                message: "Internal server error",
+                field: "",
+            });
+        }
+
+        const result = await this.postsCommandService.likePostById(
+            req.params[IdParamName.PostId],
+            req.user.userId,
+            req.body.likeStatus,
+        );
+
+        if (result.statusCode !== HttpStatus.NoContent) {
+            return res.status(result.statusCode).json(result.errorsMessages);
+        }
+
+        return res.sendStatus(result.statusCode);
+    }
 }

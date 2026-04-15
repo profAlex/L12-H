@@ -1,5 +1,5 @@
 import { LikeStatus } from "./comment-like-storage-model";
 
-export type CommentLikeInputModel = {
+export type PostLikeInputModel = {
     likeStatus: LikeStatus;
 };

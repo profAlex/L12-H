@@ -12,7 +12,7 @@ import { HttpStatus } from "../../common/http-statuses/http-statuses";
 import { CommentInputModel } from "../router-types/comment-input-model";
 import { CommentsQueryService } from "../../service-layer(BLL)/comments-query-service";
 import { CommentsCommandService } from "../../service-layer(BLL)/comments-command-service";
-import { LikeInputModel } from "../router-types/comments-like-input-model";
+import { CommentLikeInputModel } from "../router-types/comments-like-input-model";
 
 @injectable()
 export class CommentsHandler {
@@ -137,7 +137,7 @@ export class CommentsHandler {
     public likeCommentById = async (
         req: RequestWithParamsAndBody<
             { [IdParamName.CommentId]: string },
-            LikeInputModel
+            CommentLikeInputModel
         >,
         res: Response,
     ) => {

@@ -17,6 +17,7 @@ import { NewPasswordRecoveryInputModel } from "../../routers/router-types/auth-n
 import {
     ResentRegistrationConfirmationInput
 } from "../../routers/router-types/auth-resent-registration-confirmation-input-model";
+import { UserCollectionStorageModel } from "../../routers/router-types/user-storage-model";
 
 @injectable()
 export class UsersCommandRepository {
@@ -730,4 +731,10 @@ export class UsersCommandRepository {
             };
         }
     }
+}
+
+export async function findUserByPrimaryKey(
+    id: ObjectId,
+): Promise<UserCollectionStorageModel | null> {
+    return usersCollection.findOne({ _id: id });
 }

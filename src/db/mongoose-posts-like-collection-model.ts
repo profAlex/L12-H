@@ -19,7 +19,20 @@ import { COMMENTS_LIKES_COLLECTION_NAME, POSTS_LIKES_COLLECTION_NAME } from "./d
 //     likeStatus: LikeStatus;
 // };
 
-const PostLikeSchema = new Schema<PostsLikesStorageModel>(
+
+const postLikesMethods = {
+
+};
+
+type PostLikesMethods = typeof postLikesMethods;
+
+const postLikesStatics = {
+
+};
+
+type PostLikesStatics = typeof postLikesStatics;
+
+const PostLikesSchema = new Schema<PostsLikesStorageModel>(
     {
         // Мы не объявляем _id явно, Mongoose создаст его сам
         postId: { type: String, required: true },
@@ -52,17 +65,20 @@ const PostLikeSchema = new Schema<PostsLikesStorageModel>(
 );
 
 // Уникальный составной индекс для ускорения поиска
-PostLikeSchema.index({ postId: 1, createdAt: -1 });
+PostLikesSchema.index({ postId: 1, createdAt: -1 });
 // Уникальный составной индекс: один пользователь — один лайк на один комментарий.
 // Это критично, чтобы не плодить дубликаты при частых кликах.
-PostLikeSchema.index({ postId: 1, userId: 1 }, { unique: true });
+PostLikesSchema.index({ postId: 1, userId: 1 }, { unique: true });
 
 
-type PostLikeModelType = Model<PostsLikesStorageModel>;
-export type PostLikeDocument = HydratedDocument<PostsLikesStorageModel>;
+type PostLikeModelType = Model<PostsLikesStorageModel, {}, PostLikesMethods> & PostLikesStatics;
+export type PostLikeDocument = HydratedDocument<PostsLikesStorageModel, PostLikesMethods>;
 
 export const PostLikeModel = model<PostsLikesStorageModel, PostLikeModelType>(
-    "PostLike", // Короткое имя для внутренней регистрации в Mongoose
-    PostLikeSchema,
+    "PostLikes", // Короткое имя для внутренней регистрации в Mongoose
+    PostLikesSchema,
     POSTS_LIKES_COLLECTION_NAME
 );
+
+PostLikesSchema.methods = postLikesMethods;
+PostLikesSchema.statics = postLikesStatics;

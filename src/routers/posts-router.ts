@@ -28,15 +28,15 @@ export const getPostsRouter = (postsHandler: PostsHandler) => {
         CollectionNames.Posts,
     );
 
-    // // make like/unlike/dislike/undislike operation
-    // postsRouter.put(
-    //     `/:${IdParamName.PostId}/like-status`, // здесь было просто id
-    //     superAdminGuardMiddleware,
-    //     validateParameterPostId,
-    //     /*inputErrorManagementMiddleware,*/ postInputModelValidation,
-    //     inputErrorManagementMiddleware,
-    //     postsHandler.likePostById,
-    // );
+    // make like/unlike/dislike/undislike operation
+    postsRouter.put(
+        `/:${IdParamName.PostId}/like-status`, // здесь было просто id
+        accessTokenGuard,
+        validateParameterPostId,
+        /*inputErrorManagementMiddleware,*/ postInputModelValidation,
+        inputErrorManagementMiddleware,
+        postsHandler.likePostById,
+    );
 
     // requests a list of comments for specified postId
     postsRouter.get(
@@ -103,6 +103,8 @@ export const getPostsRouter = (postsHandler: PostsHandler) => {
         inputErrorManagementMiddleware,
         postsHandler.deletePost,
     );
+
+
 
     return postsRouter;
 };

@@ -25,13 +25,13 @@ export class CommentsLikesCommandRepository {
     }
 
 
-    async deleteLikeById(sentLikeDocument: CommentLikeDocument): Promise<boolean> {
+    async deleteCommentLikeById(sentLikeId: ObjectId): Promise<boolean> {
         try {
-            await sentLikeDocument.deleteOne();
+            const result = await CommentLikeModel.deleteOne(sentLikeId);
 
-            return true;
+            return result.deletedCount === 1;
         } catch (error) {
-            console.error(`Error deleting like document inside deleteCommentById sentLikeDocument.deleteOne(): ${error instanceof Error ? error.message : "Unknown error"}`);
+            console.error(`Error deleting like document inside CommentsLikesCommandRepository -> deleteCommentLikeById: ${error instanceof Error ? error.message : "Unknown error"}`);
 
             return false;
         }

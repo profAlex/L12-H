@@ -17,7 +17,7 @@ export class CommentsCommandService {
         @inject(TYPES.CommentsCommandRepository)
         protected commentsCommandRepository: CommentsCommandRepository,
         @inject(TYPES.CommentsLikesCommandRepository)
-        protected likesCommandRepository: CommentsLikesCommandRepository,
+        protected commentsLikesCommandRepository: CommentsLikesCommandRepository,
     ) {}
 
     async updateCommentById(
@@ -130,16 +130,17 @@ export class CommentsCommandService {
         sentUserId: string,
         sentLike: LikeStatus,
     ): Promise<CustomResult> {
+
         const previousReactionResult: CommentLikeDocument | null =
-            await this.likesCommandRepository.checkIfUserAlreadyReacted(
+            await this.commentsLikesCommandRepository.checkIfUserAlreadyReacted(
                 sentUserId,
                 sentCommentId,
             );
 
         // если прежней реакции не найдено и новая реакция не None
         if (previousReactionResult === null && sentLike !== "None") {
-            // console.warn("DID WE GET INSIDE если прежней реакции не найдено и новая реакция не None ???");
 
+            // console.warn("DID WE GET INSIDE если прежней реакции не найдено и новая реакция не None ???");
             const newLikeDocument: CommentLikeDocument = await CommentLikeModel.create({
                 commentId: sentCommentId,
                 userId: sentUserId,
@@ -147,7 +148,7 @@ export class CommentsCommandService {
             });
 
             const ifSavingLikeSuccessful =
-                await this.likesCommandRepository.saveLikeDocument(
+                await this.commentsLikesCommandRepository.saveLikeDocument(
                     newLikeDocument,
                 );
 
@@ -191,25 +192,25 @@ export class CommentsCommandService {
             previousReactionResult !== null &&
             previousReactionResult.likeStatus !== sentLike
         ) {
-            console.warn(
-                "DID WE GET INSIDE если прежняя реакция найдена и она не равна вновь переданной ???",
-            );
+            // console.warn(
+            //     "DID WE GET INSIDE если прежняя реакция найдена и она не равна вновь переданной ???",
+            // );
 
             // дополнительное условие - если передали лайк = none - удалить запись из лайк репозитория,
             // не забыть вызвать nullifyReaction
 
             // если новая реакция это None, тогда надо удалить запись лайка в репозитории лайков и сбросить реакцию в комменте
             if (sentLike === "None") {
-                console.warn(
-                    "DID WE GET INSIDE если новая реакция это None, тогда надо удалить запись лайка в репозитории лайков и сбросить реакцию в комменте???",
-                );
+                // console.warn(
+                //     "DID WE GET INSIDE если новая реакция это None, тогда надо удалить запись лайка в репозитории лайков и сбросить реакцию в комменте???",
+                // );
 
                 // запоминаем какая реакция была ранее проставлена юзером
                 const previousReaction: LikeStatus =
                     previousReactionResult.likeStatus;
 
-                const result = await this.likesCommandRepository.deleteLikeById(
-                    previousReactionResult,
+                const result = await this.commentsLikesCommandRepository.deleteCommentLikeById(
+                    previousReactionResult._id,
                 );
 
                 if (!result) {
@@ -220,9 +221,9 @@ export class CommentsCommandService {
 
                         errorsMessages: [
                             {
-                                field: "CommentsCommandRepository.likeCommentById", // это служебная и от
+                                field: "if (!result)", // это служебная и от
                                 message:
-                                    "Unknown error inside CommentsCommandRepository.likeCommentById",
+                                    "Unknown error inside const result = await this.commentsLikesCommandRepository.deleteCommentLikeById",
                             },
                         ],
                     };
@@ -251,14 +252,14 @@ export class CommentsCommandService {
                 // если мы меняем реакцию на Like или Dislike
             } else {
                 // меняем реакцию на новую
-                console.warn(
-                    "DID WE GET INSIDE меняем реакцию на Like или Dislike ???",
-                );
+                // console.warn(
+                //     "DID WE GET INSIDE меняем реакцию на Like или Dislike ???",
+                // );
 
                 previousReactionResult.likeStatus = sentLike;
 
                 const ifSavingLikeSuccessful =
-                    await this.likesCommandRepository.saveLikeDocument(
+                    await this.commentsLikesCommandRepository.saveLikeDocument(
                         previousReactionResult,
                     );
 

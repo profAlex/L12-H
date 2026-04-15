@@ -17,19 +17,19 @@ import { COMMENTS_LIKES_COLLECTION_NAME } from "./db-collection-names";
 //     likeStatus: LikeStatus;
 //     createdAt: Date;
 // };
-const commentsLikesMethods = {
+const commentLikesMethods = {
 
 };
 
-type CommentsLikesMethod = typeof commentsLikesMethods;
+type CommentLikesMethod = typeof commentLikesMethods;
 
-const commentsLikeStatics = {
+const commentLikeStatics = {
 
 };
 
-type CommentsLikesStatics = typeof commentsLikeStatics;
+type CommentsLikesStatics = typeof commentLikeStatics;
 
-const CommentLikeSchema = new Schema<CommentsLikesStorageModel>(
+const CommentLikesSchema = new Schema<CommentsLikesStorageModel>(
     {
         // Мы не объявляем _id явно, Mongoose создаст его сам
         commentId: { type: String, required: true },
@@ -62,14 +62,17 @@ const CommentLikeSchema = new Schema<CommentsLikesStorageModel>(
 
 // Уникальный составной индекс: один пользователь — один лайк на один комментарий.
 // Это критично, чтобы не плодить дубликаты при частых кликах.
-CommentLikeSchema.index({ userId: 1, commentId: 1, }, { unique: true });
-CommentLikeSchema.index({ commentId: 1, });
+CommentLikesSchema.index({ userId: 1, commentId: 1, }, { unique: true });
+CommentLikesSchema.index({ commentId: 1, });
 
-type CommentLikeModelType = Model<CommentsLikesStorageModel>;
-export type CommentLikeDocument = HydratedDocument<CommentsLikesStorageModel>;
+type CommentLikeModelType = Model<CommentsLikesStorageModel, {}, CommentLikesMethod> & CommentsLikesStatics;
+export type CommentLikeDocument = HydratedDocument<CommentsLikesStorageModel, CommentLikesMethod>;
 
 export const CommentLikeModel = model<CommentsLikesStorageModel, CommentLikeModelType>(
-    "CommentLike", // Короткое имя для внутренней регистрации в Mongoose
-    CommentLikeSchema,
+    "CommentLikes", // Короткое имя для внутренней регистрации в Mongoose
+    CommentLikesSchema,
     COMMENTS_LIKES_COLLECTION_NAME
 );
+
+CommentLikesSchema.methods = commentLikesMethods;
+CommentLikesSchema.statics = commentLikeStatics;

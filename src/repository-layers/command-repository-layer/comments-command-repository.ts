@@ -202,13 +202,13 @@ export class CommentsCommandRepository {
                 ? 'likesInfo.likesCount'
                 : 'likesInfo.dislikesCount';
 
-            // 2. Создаем фильтр: ищем по ID И проверяем, что в поле больше 0
+            // создаем фильтр: ищем по ID И проверяем, что в поле больше 0
             const filter: any = {
                 _id: sentCommentId,
                 [fieldToDecrement]: { $gt: 0 } // Защита от ухода в минус
             };
 
-            // 3. Выполняем атомарное уменьшение
+            // выполняем атомарное уменьшение
             const result = await CommentModel.updateOne(
                 filter,
                 { $inc: { [fieldToDecrement]: -1 } }
@@ -229,6 +229,7 @@ export class CommentsCommandRepository {
             return false;
         }
     }
+
 
     async saveNewComment(newComment: CommentDocument): Promise<boolean> {
         try{
