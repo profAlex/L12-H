@@ -159,111 +159,77 @@ export class PostsCommandRepository {
     }
 
 
-    async updatePost(
-        postId: string,
-        newData: PostInputModel,
-    ): Promise<null | undefined> {
+    // async updatePost(
+    //     postId: string,
+    //     newData: PostInputModel,
+    // ): Promise<null | undefined> {
+    //     try {
+    //         if (ObjectId.isValid(postId)) {
+    //             const idToCheck = new ObjectId(postId);
+    //             const res = await postsCollection.updateOne(
+    //                 { _id: idToCheck },
+    //                 { $set: { ...newData } },
+    //             );
+    //
+    //             if (!res.acknowledged) {
+    //                 throw new CustomError({
+    //                     errorMessage: {
+    //                         field: "postsCollection.updateOne",
+    //                         message: "attempt to update post entry failed",
+    //                     },
+    //                 });
+    //             }
+    //
+    //             if (res.matchedCount === 1) {
+    //                 // успешное выполнение
+    //                 return null;
+    //             }
+    //         } else {
+    //             throw new CustomError({
+    //                 errorMessage: {
+    //                     field: "ObjectId.isValid(postId)",
+    //                     message: "invalid post ID",
+    //                 },
+    //             });
+    //         }
+    //     } catch (error) {
+    //         if (error instanceof CustomError) {
+    //             if (error.metaData) {
+    //                 const errorData = error.metaData.errorMessage;
+    //                 console.error(
+    //                     `In field: ${errorData.field} - ${errorData.message}`,
+    //                 );
+    //             } else {
+    //                 console.error(`Unknown error: ${JSON.stringify(error)}`);
+    //             }
+    //
+    //             // throw new Error('Placeholder for an error in to be rethrown and dealt with in the future in createNewBlog method of dataCommandRepository');
+    //             return undefined;
+    //         } else {
+    //             console.error(
+    //                 `Unknown error inside dataCommandRepository.updatePost: ${JSON.stringify(error)}`,
+    //             );
+    //             throw new Error(
+    //                 "Placeholder for an error to be rethrown and dealt with in the future in updatePost method of dataCommandRepository",
+    //             );
+    //         }
+    //     }
+    // }
+
+
+    async deletePost(postId: ObjectId): Promise<boolean> {
         try {
-            if (ObjectId.isValid(postId)) {
-                const idToCheck = new ObjectId(postId);
-                const res = await postsCollection.updateOne(
-                    { _id: idToCheck },
-                    { $set: { ...newData } },
-                );
+            const result = await PostModel.deleteOne({ _id: postId });
 
-                if (!res.acknowledged) {
-                    throw new CustomError({
-                        errorMessage: {
-                            field: "postsCollection.updateOne",
-                            message: "attempt to update post entry failed",
-                        },
-                    });
-                }
-
-                if (res.matchedCount === 1) {
-                    // успешное выполнение
-                    return null;
-                }
-            } else {
-                throw new CustomError({
-                    errorMessage: {
-                        field: "ObjectId.isValid(postId)",
-                        message: "invalid post ID",
-                    },
-                });
-            }
+            return result.deletedCount === 1;
         } catch (error) {
-            if (error instanceof CustomError) {
-                if (error.metaData) {
-                    const errorData = error.metaData.errorMessage;
-                    console.error(
-                        `In field: ${errorData.field} - ${errorData.message}`,
-                    );
-                } else {
-                    console.error(`Unknown error: ${JSON.stringify(error)}`);
-                }
+            console.error(
+                `Error inside PostsCommandRepository.deletePost: ${error instanceof Error ? error.message : "Unknown error"}`,
+            );
 
-                // throw new Error('Placeholder for an error in to be rethrown and dealt with in the future in createNewBlog method of dataCommandRepository');
-                return undefined;
-            } else {
-                console.error(
-                    `Unknown error inside dataCommandRepository.updatePost: ${JSON.stringify(error)}`,
-                );
-                throw new Error(
-                    "Placeholder for an error to be rethrown and dealt with in the future in updatePost method of dataCommandRepository",
-                );
-            }
+            return false;
         }
     }
 
 
-    async deletePost(postId: string): Promise<null | undefined> {
-        try {
-            if (ObjectId.isValid(postId)) {
-                const idToCheck = new ObjectId(postId);
-                const res = await postsCollection.deleteOne({ _id: idToCheck });
-
-                if (!res.acknowledged) {
-                    throw new CustomError({
-                        errorMessage: {
-                            field: "postsCollection.deleteOne",
-                            message: "attempt to delete post entry failed",
-                        },
-                    });
-                }
-
-                if (res.deletedCount === 1) {
-                    return null;
-                }
-            } else {
-                throw new CustomError({
-                    errorMessage: {
-                        field: "ObjectId.isValid(postId)",
-                        message: "invalid post ID",
-                    },
-                });
-            }
-        } catch (error) {
-            if (error instanceof CustomError) {
-                if (error.metaData) {
-                    const errorData = error.metaData.errorMessage;
-                    console.error(
-                        `In field: ${errorData.field} - ${errorData.message}`,
-                    );
-                } else {
-                    console.error(`Unknown error: ${JSON.stringify(error)}`);
-                }
-
-                // throw new Error('Placeholder for an error in to be rethrown and dealt with in the future in createNewBlog method of dataCommandRepository');
-                return undefined;
-            } else {
-                console.error(
-                    `Unknown error inside dataCommandRepository.deletePost: ${JSON.stringify(error)}`,
-                );
-                throw new Error(
-                    "Placeholder for an error to be rethrown and dealt with in the future in deletePost method of dataCommandRepository",
-                );
-            }
-        }
-    }
 }

@@ -116,9 +116,8 @@ const PostSchema = new Schema<PostStorageModel>(
         timestamps: false,
         id: false,
         autoIndex: false, // Индексы создаем вручную в runDB
-        // настройку versionKey:false пока исключаем чтобы работал optimisticConcurrency, посмотри как поведут себя платформенные тесты
+        // настройку versionKey:false пока исключаем, посмотри как поведут себя платформенные тесты
         // versionKey: false,
-        optimisticConcurrency: true,
     },
 );
 

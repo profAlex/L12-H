@@ -243,4 +243,13 @@ export class CommentsCommandRepository {
             return false;
         }
     }
+
+    async getCommentIdsByPostId(postId: string): Promise<string[]> {
+        const comments = await CommentModel.find({ postId }).select('_id').lean();
+        return comments.map(c => c._id.toString());
+    }
+
+    async deleteManyByPostId(postId: string): Promise<void> {
+        await CommentModel.deleteMany({ postId });
+    }
 }

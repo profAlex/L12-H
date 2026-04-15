@@ -250,9 +250,10 @@ export class PostsHandler {
             typeof req.params[IdParamName.PostId] === "string"
                 ? req.params[IdParamName.PostId]
                 : req.params[IdParamName.PostId][0];
+
         const result = await this.postsCommandService.deletePost(postId);
 
-        if (result === undefined) {
+        if (result === false) {
             res.sendStatus(HttpStatus.NotFound);
         }
 

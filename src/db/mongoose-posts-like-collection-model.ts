@@ -44,9 +44,10 @@ const PostLikeSchema = new Schema<PostsLikesStorageModel>(
     {
         collection: POSTS_LIKES_COLLECTION_NAME,
         timestamps: false,
-        versionKey: false,
+        // versionKey: false,
         // id: false,
-        autoIndex: false
+        autoIndex: false,
+        optimisticConcurrency: true
     },
 );
 

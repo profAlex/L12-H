@@ -1,5 +1,6 @@
 import { inject, injectable } from "inversify";
 import { CommentLikeDocument, CommentLikeModel } from "../../db/mongoose-comments-like-collection-model";
+import { ObjectId } from "mongodb";
 
 @injectable()
 export class CommentsLikesCommandRepository {
@@ -36,4 +37,9 @@ export class CommentsLikesCommandRepository {
         }
     }
 
+    async deleteLikesByCommentIds(commentIds: string[]): Promise<void> {
+        await CommentLikeModel.deleteMany({
+            commentId: { $in: commentIds }
+        });
+    }
 }

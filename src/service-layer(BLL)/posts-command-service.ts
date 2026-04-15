@@ -15,6 +15,12 @@ import { CommentModel } from "../db/mongo.db";
 import { findUserByPrimaryKey } from "../repository-layers/query-repository-layer/users-query-repository";
 import { CommentsCommandRepository } from "../repository-layers/command-repository-layer/comments-command-repository";
 import { PostModel } from "../db/mongoose-post-collection-model";
+import {
+    CommentsLikesCommandRepository
+} from "../repository-layers/command-repository-layer/comments-likes-command-repository";
+import {
+    PostsLikesCommandRepository
+} from "../repository-layers/command-repository-layer/posts-likes-command-repository";
 
 @injectable()
 export class PostsCommandService {
@@ -23,6 +29,10 @@ export class PostsCommandService {
         protected postsCommandRepository: PostsCommandRepository,
         @inject(TYPES.CommentsCommandRepository)
         protected commentsCommandRepository: CommentsCommandRepository,
+        @inject(TYPES.CommentsLikesCommandRepository)
+        protected commentsLikesCommandRepository: CommentsLikesCommandRepository,
+        @inject(TYPES.PostsLikesCommandRepository)
+        protected postsLikesCommandRepository: PostsLikesCommandRepository,
     ) {}
 
     async createNewComment(
@@ -139,7 +149,33 @@ export class PostsCommandService {
         }
     }
 
-    async deletePost(postId: string): Promise<null | undefined> {
-        return await this.postsCommandRepository.deletePost(postId);
+    async deletePost(postId: string): Promise<boolean>  {
+        try {
+            const post = await this.postsCommandRepository.getPostById(postId);
+            if (!post) return false;
+
+            // Собираем ID всех комментариев этого поста
+            const commentIds = await this.commentsCommandRepository.getCommentIdsByPostId(postId);
+
+            if (commentIds.length > 0) {
+                // удаляем лайки, которые относятся к этим комментариям
+                await this.commentsLikesCommandRepository.deleteLikesByCommentIds(commentIds);
+
+                // уаляем сами комментарии
+                await this.commentsCommandRepository.deleteManyByPostId(postId);
+            }
+
+            // удалил лайки самого поста
+            await this.postsLikesCommandRepository.deleteLikesByPostId(postId);
+
+            // в конце удаляем сам пост
+            const result = await this.postsCommandRepository.deletePost(new ObjectId(postId));
+            return result;
+        } catch (error) {
+            console.warn(
+                `Error while deleting post: ${error instanceof Error ? error.message : "unknown error"}`,
+            );
+            return false;
+        }
     }
 }
