@@ -10,19 +10,21 @@ import { usersCollection } from "../../db/mongo.db";
 import { RegistrationConfirmationInput } from "../../routers/router-types/auth-registration-confirmation-input-model";
 import { CustomResult } from "../../common/result-type/result-type";
 import { HttpStatus } from "../../common/http-statuses/http-statuses";
-import { emailExamples, mailerService } from "../../adapters/email-sender/mailer-service";
+import {
+    emailExamples,
+    mailerService,
+} from "../../adapters/email-sender/mailer-service";
 import { randomUUID } from "node:crypto";
 import { PasswordRecoveryInputModel } from "../../routers/router-types/auth-password-recovery-input-model";
 import { NewPasswordRecoveryInputModel } from "../../routers/router-types/auth-new-password-recovery-input-model";
-import {
-    ResentRegistrationConfirmationInput
-} from "../../routers/router-types/auth-resent-registration-confirmation-input-model";
+import { ResentRegistrationConfirmationInput } from "../../routers/router-types/auth-resent-registration-confirmation-input-model";
 import { UserCollectionStorageModel } from "../../routers/router-types/user-storage-model";
 
 @injectable()
 export class UsersCommandRepository {
-
-    constructor(@inject(TYPES.BcryptService) protected bcryptService:BcryptService) {}
+    constructor(
+        @inject(TYPES.BcryptService) protected bcryptService: BcryptService,
+    ) {}
 
     async createNewUser(
         sentNewUser: UserInputModel,
@@ -164,7 +166,7 @@ export class UsersCommandRepository {
             const searchResult = await usersCollection.findOne(
                 {
                     "emailConfirmation.confirmationCode":
-                    sentConfirmationData.code,
+                        sentConfirmationData.code,
                     "emailConfirmation.expirationDate": { $gt: new Date() },
                     "emailConfirmation.isConfirmed": false,
                 },
@@ -310,7 +312,7 @@ export class UsersCommandRepository {
                 {
                     $set: {
                         "passwordRecoveryInformation.passwordRecoveryCode":
-                        newRecoveryCode,
+                            newRecoveryCode,
                         "passwordRecoveryInformation.expirationDate": new Date(
                             new Date().setDate(new Date().getMinutes() + 3000), // здесь значение 3000 просто специально оч большое, вообще этой функциональности не было заложено в ТЗ, заложил ее на будущее, можно и убрать
                         ),
@@ -341,13 +343,12 @@ export class UsersCommandRepository {
             // а если письмо просто потерялось или юзер тупит - для нас это может быть куча лишней работы по обслуживанию непонятно чего
             // так что во втором случае пусть юзер сам лучше на себя возьмет это работу - просто повторно отправит если что запррос, нам главно оптимально подобрать период удалления неподтвержденных данных (минут 15-30)
 
-            const sendingResult =
-                await mailerService.sendEmailWithCode(
-                    '"Alex St" <geniusb198@yandex.ru>',
-                    sentEmailData.email,
-                    newRecoveryCode,
-                    emailExamples.passwordRecoveryEmail,
-                );
+            const sendingResult = await mailerService.sendEmailWithCode(
+                '"Alex St" <geniusb198@yandex.ru>',
+                sentEmailData.email,
+                newRecoveryCode,
+                emailExamples.passwordRecoveryEmail,
+            );
 
             let status =
                 "Sending recovery email went without problems, awaiting confirmation form user";
@@ -414,8 +415,10 @@ export class UsersCommandRepository {
             const searchResult = await usersCollection.findOne(
                 {
                     "passwordRecoveryInformation.passwordRecoveryCode":
-                    sentConfirmationData.recoveryCode,
-                    "passwordRecoveryInformation.expirationDate": { $gt: new Date() },
+                        sentConfirmationData.recoveryCode,
+                    "passwordRecoveryInformation.expirationDate": {
+                        $gt: new Date(),
+                    },
                     "passwordRecoveryInformation.isRecoveryInAction": true,
                 },
                 { projection: { _id: 1 } },
@@ -437,20 +440,21 @@ export class UsersCommandRepository {
             if (searchResult) {
                 // если юзер с заданными характеристиками нашелся - генерируем новый хэш для пароля и пробуем обновить его
                 const newPasswordHash = await this.bcryptService.generateHash(
-                    sentConfirmationData.newPassword
+                    sentConfirmationData.newPassword,
                 );
 
                 if (!newPasswordHash) {
                     return {
                         data: null,
                         statusCode: HttpStatus.InternalServerError,
-                        statusDescription: "Error inside UsersCommandRepository -> confirmPasswordRecoveryCode -> bcryptService.generateHash",
+                        statusDescription:
+                            "Error inside UsersCommandRepository -> confirmPasswordRecoveryCode -> bcryptService.generateHash",
                         errorsMessages: [
                             {
                                 field: "bcryptService.generateHash",
-                                message: "Generating hash error"
-                            }
-                        ]
+                                message: "Generating hash error",
+                            },
+                        ],
                     };
                 }
 
@@ -459,7 +463,8 @@ export class UsersCommandRepository {
                     {
                         $set: {
                             passwordHash: newPasswordHash,
-                            "passwordRecoveryInformation.confirmationCode": null,
+                            "passwordRecoveryInformation.confirmationCode":
+                                null,
                             "passwordRecoveryInformation.isRecoveryInAction": false,
                         },
                     },
@@ -469,7 +474,8 @@ export class UsersCommandRepository {
                     return {
                         data: null,
                         statusCode: HttpStatus.NoContent,
-                        statusDescription: "Successfully confirmed new password",
+                        statusDescription:
+                            "Successfully confirmed new password",
                         errorsMessages: [
                             {
                                 field: "",
@@ -656,7 +662,7 @@ export class UsersCommandRepository {
                 {
                     $set: {
                         "emailConfirmation.confirmationCode":
-                        newConfirmationCode,
+                            newConfirmationCode,
                         "emailConfirmation.expirationDate": new Date(
                             new Date().setDate(new Date().getMinutes() + 30),
                         ),
@@ -686,13 +692,12 @@ export class UsersCommandRepository {
             // а если письмо просто потерялось или юзер тупит - для нас это может быть куча лишней работы по обслуживанию непонятно чего
             // так что во втором случае пусть юзер сам лучше на себя возьмет это работу - просто повторно отправит если что запррос, нам главно оптимально подобрать период удалления неподтвержденных данных (минут 15-30)
 
-            const resendingResult =
-                await mailerService.sendEmailWithCode(
-                    '"Alex St" <geniusb198@yandex.ru>',
-                    sentEmailData.email,
-                    newConfirmationCode,
-                    emailExamples.registrationEmail,
-                );
+            const resendingResult = await mailerService.sendEmailWithCode(
+                '"Alex St" <geniusb198@yandex.ru>',
+                sentEmailData.email,
+                newConfirmationCode,
+                emailExamples.registrationEmail,
+            );
 
             let status =
                 "Resending went without problems, awaiting confirmation form user";
@@ -731,10 +736,10 @@ export class UsersCommandRepository {
             };
         }
     }
-}
 
-export async function findUserByPrimaryKey(
-    id: ObjectId,
-): Promise<UserCollectionStorageModel | null> {
-    return usersCollection.findOne({ _id: id });
+    async findUserByPrimaryKey(
+        id: ObjectId,
+    ): Promise<UserCollectionStorageModel | null> {
+        return usersCollection.findOne({ _id: id });
+    }
 }

@@ -9,7 +9,7 @@ import { UserIdType } from "../router-types/user-id-type";
 import {
     RequestWithParamsAndBody,
     RequestWithParamsAndBodyAndUserId,
-    RequestWithParamsAndQuery
+    RequestWithParamsAndQuery,
 } from "../request-types/request-types";
 import { CommentInputModel } from "../router-types/comment-input-model";
 import { IdParamName } from "../util-enums/id-names";
@@ -173,7 +173,6 @@ export class PostsHandler {
 
             res.status(HttpStatus.Ok).send(postsListOutput);
         }
-
     };
 
     // немного другой способ создания поста, делает то же что и createNewBlogPost, но другой способ передачи blog ID - он передается внутри req.body
@@ -185,7 +184,9 @@ export class PostsHandler {
         if (insertedId) {
             // а вот здесь уже идем в PostsQueryService с айдишником который нам вернул this.postsCommandService.createNewPost
             const result =
-                await this.postsQueryService.findSinglePostAnonimously(insertedId);
+                await this.postsQueryService.findSinglePostAnonimously(
+                    insertedId,
+                );
 
             if (result) {
                 res.status(HttpStatus.Created).json(result);
@@ -207,8 +208,8 @@ export class PostsHandler {
 
         // проверка - null возвращается из гварда, если обращение идет от незалогиненого пользователя, этот случай обрабатывается отдельно
         if (req.user!.userId === null) {
-
-            const searchResult = await this.postsQueryService.findSinglePostAnonimously(postId);
+            const searchResult =
+                await this.postsQueryService.findSinglePostAnonimously(postId);
 
             if (searchResult === null) {
                 res.sendStatus(HttpStatus.NotFound);
@@ -216,8 +217,10 @@ export class PostsHandler {
 
             res.status(HttpStatus.Ok).json(searchResult);
         } else {
-
-            const searchResult = await this.postsQueryService.findSinglePost(postId, req.user!.userId );
+            const searchResult = await this.postsQueryService.findSinglePost(
+                postId,
+                req.user!.userId,
+            );
 
             if (searchResult === null) {
                 res.sendStatus(HttpStatus.NotFound);
@@ -225,7 +228,6 @@ export class PostsHandler {
 
             res.status(HttpStatus.Ok).json(searchResult);
         }
-
     };
 
     public updatePost = async (req: Request, res: Response) => {
@@ -233,7 +235,6 @@ export class PostsHandler {
             typeof req.params[IdParamName.PostId] === "string"
                 ? req.params[IdParamName.PostId]
                 : req.params[IdParamName.PostId][0];
-
 
         const result = await this.postsCommandService.updatePost(
             postId,
@@ -262,7 +263,15 @@ export class PostsHandler {
         res.sendStatus(HttpStatus.NoContent);
     };
 
-    public likePostById = async (req: RequestWithParamsAndBody<{[IdParamName.PostId]:string},PostLikeInputModel>, res: Response) => {
+    public likePostById = async (
+        req: RequestWithParamsAndBody<
+            {
+                [IdParamName.PostId]: string;
+            },
+            PostLikeInputModel
+        >,
+        res: Response,
+    ) => {
         if (!req.user || !req.user.userId) {
             console.error({
                 message:
@@ -287,5 +296,5 @@ export class PostsHandler {
         }
 
         return res.sendStatus(result.statusCode);
-    }
+    };
 }

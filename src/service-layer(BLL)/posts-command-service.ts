@@ -14,15 +14,14 @@ import { PostInputModel } from "../routers/router-types/post-input-model";
 import { CommentModel } from "../db/mongo.db";
 import { CommentsCommandRepository } from "../repository-layers/command-repository-layer/comments-command-repository";
 import { PostModel } from "../db/mongoose-post-collection-model";
-import {
-    CommentsLikesCommandRepository
-} from "../repository-layers/command-repository-layer/comments-likes-command-repository";
-import {
-    PostsLikesCommandRepository
-} from "../repository-layers/command-repository-layer/posts-likes-command-repository";
+import { CommentsLikesCommandRepository } from "../repository-layers/command-repository-layer/comments-likes-command-repository";
+import { PostsLikesCommandRepository } from "../repository-layers/command-repository-layer/posts-likes-command-repository";
 import { LikeStatus } from "../routers/router-types/comment-like-storage-model";
-import { PostLikeDocument, PostLikeModel } from "../db/mongoose-posts-like-collection-model";
-import { findUserByPrimaryKey } from "../repository-layers/command-repository-layer/users-command-repository";
+import {
+    PostLikeDocument,
+    PostLikeModel,
+} from "../db/mongoose-posts-like-collection-model";
+import { UsersCommandRepository } from "../repository-layers/command-repository-layer/users-command-repository";
 
 @injectable()
 export class PostsCommandService {
@@ -35,6 +34,8 @@ export class PostsCommandService {
         protected commentsLikesCommandRepository: CommentsLikesCommandRepository,
         @inject(TYPES.PostsLikesCommandRepository)
         protected postsLikesCommandRepository: PostsLikesCommandRepository,
+        @inject(TYPES.UsersCommandRepository)
+        protected usersCommandRepository: UsersCommandRepository,
     ) {}
 
     async createNewComment(
@@ -43,7 +44,9 @@ export class PostsCommandService {
         userId: string,
     ): Promise<CustomResult<CommentViewModel>> {
         // findUserByPrimaryKey и юзера брать выше и спускать оттуда
-        const user = await findUserByPrimaryKey(new ObjectId(userId));
+        const user = await this.usersCommandRepository.findUserByPrimaryKey(
+            new ObjectId(userId),
+        );
 
         if (!user) {
             return {
@@ -99,9 +102,7 @@ export class PostsCommandService {
         };
     }
 
-    async createNewPost(
-        requestBody: PostInputModel,
-    ): Promise<string | null> {
+    async createNewPost(requestBody: PostInputModel): Promise<string | null> {
         // это тоже надо спускать из хэндлера? или из blogCommandRepository, вызывая его через инжектированный экземпляр
         try {
             const relatedBlogger = await findBlogByPrimaryKey(
@@ -114,7 +115,7 @@ export class PostsCommandService {
 
             const blogName = relatedBlogger.name;
 
-            const newPost = await PostModel.createNewPost(
+            const newPost = PostModel.createNewPost(
                 blogName,
                 requestBody,
             );
@@ -133,7 +134,10 @@ export class PostsCommandService {
         }
     }
 
-    async updatePost(postId: string, newData: PostInputModel): Promise<boolean | null> {
+    async updatePost(
+        postId: string,
+        newData: PostInputModel,
+    ): Promise<boolean | null> {
         try {
             const post = await this.postsCommandRepository.getPostById(postId);
             if (!post) return null;
@@ -151,17 +155,22 @@ export class PostsCommandService {
         }
     }
 
-    async deletePost(postId: string): Promise<boolean>  {
+    async deletePost(postId: string): Promise<boolean> {
         try {
             const post = await this.postsCommandRepository.getPostById(postId);
             if (!post) return false;
 
             // Собираем ID всех комментариев этого поста
-            const commentIds = await this.commentsCommandRepository.getCommentIdsByPostId(postId);
+            const commentIds =
+                await this.commentsCommandRepository.getCommentIdsByPostId(
+                    postId,
+                );
 
             if (commentIds.length > 0) {
                 // удаляем лайки, которые относятся к этим комментариям
-                await this.commentsLikesCommandRepository.deleteLikesByCommentIds(commentIds);
+                await this.commentsLikesCommandRepository.deleteLikesByCommentIds(
+                    commentIds,
+                );
 
                 // уаляем сами комментарии
                 await this.commentsCommandRepository.deleteManyByPostId(postId);
@@ -171,7 +180,9 @@ export class PostsCommandService {
             await this.postsLikesCommandRepository.deleteLikesByPostId(postId);
 
             // в конце удаляем сам пост
-            const result = await this.postsCommandRepository.deletePost(new ObjectId(postId));
+            const result = await this.postsCommandRepository.deletePost(
+                new ObjectId(postId),
+            );
             return result;
         } catch (error) {
             console.warn(
@@ -181,20 +192,36 @@ export class PostsCommandService {
         }
     }
 
-
     async likePostById(
         sentPostId: string,
         sentUserId: string,
         sentLike: LikeStatus,
     ): Promise<CustomResult> {
 
+        const post = await this.postsCommandRepository.getPostById(sentPostId);
+        if (!post) return {
+            data: null,
+            statusCode: HttpStatus.InternalServerError,
+            statusDescription: `Cannot find post with ID ${sentPostId} inside PostsCommandService.likePostById.`,
+            errorsMessages: [
+                {
+                    field: "if (!post) inside PostsCommandService.likePostById.",
+                    message: `Internal Server Error`,
+                },
+            ],
+        };
+
+        // проверяем наличие реакции на пост в коллекции пост-лайков
         const previousReactionResult =
             await this.postsLikesCommandRepository.checkIfUserAlreadyReacted(
                 sentUserId,
                 sentPostId,
             );
 
-        const user = await findUserByPrimaryKey(new ObjectId(sentUserId));
+        // находим юзера, нам нужен будет от него userLogin
+        const user = await this.usersCommandRepository.findUserByPrimaryKey(
+            new ObjectId(sentUserId),
+        );
         if (!user) {
             return {
                 data: null,
@@ -211,14 +238,13 @@ export class PostsCommandService {
 
         // если прежней реакции не найдено и новая реакция не None
         if (previousReactionResult === null && sentLike !== "None") {
-
-            // console.warn("DID WE GET INSIDE если прежней реакции не найдено и новая реакция не None ???");
-            const newLikeDocument: PostLikeDocument = await PostLikeModel.create({
-                postId: sentPostId,
-                userId: sentUserId,
-                userLogin: user.login,
-                likeStatus: sentLike,
-            });
+            const newLikeDocument: PostLikeDocument =
+                PostLikeModel.createNewPostLike(
+                    sentPostId,
+                    sentUserId,
+                    user.login,
+                    sentLike,
+                );
 
             const ifSavingLikeSuccessful =
                 await this.postsLikesCommandRepository.savePostLikeDocument(
@@ -241,7 +267,7 @@ export class PostsCommandService {
 
             // добавляем реакцию в счетчик реакций в базе комментариев
             const ifAddReactionSuccessfull =
-                await this.postsCommandRepository.addPostReaction(
+                await post.addPostReaction(
                     sentPostId,
                     sentLike,
                 );
@@ -265,26 +291,20 @@ export class PostsCommandService {
             previousReactionResult !== null &&
             previousReactionResult.likeStatus !== sentLike
         ) {
-            // console.warn(
-            //     "DID WE GET INSIDE если прежняя реакция найдена и она не равна вновь переданной ???",
-            // );
-
             // дополнительное условие - если передали лайк = none - удалить запись из лайк репозитория,
             // не забыть вызвать nullifyReaction
 
             // если новая реакция это None, тогда надо удалить запись лайка в репозитории лайков и сбросить реакцию в комменте
             if (sentLike === "None") {
-                // console.warn(
-                //     "DID WE GET INSIDE если новая реакция это None, тогда надо удалить запись лайка в репозитории лайков и сбросить реакцию в комменте???",
-                // );
 
                 // запоминаем какая реакция была ранее проставлена юзером
                 const previousReaction: LikeStatus =
                     previousReactionResult.likeStatus;
 
-                const result = await this.postsLikesCommandRepository.deletePostLikeById(
-                    previousReactionResult._id,
-                );
+                const result =
+                    await this.postsLikesCommandRepository.deletePostLikeById(
+                        previousReactionResult._id,
+                    );
 
                 if (!result) {
                     return {
@@ -304,7 +324,7 @@ export class PostsCommandService {
 
                 // делаем декремент счетчика лайка или дизлайка
                 const ifNullifyingReactionSuccessfull =
-                    await this.postsCommandRepository.nullifyingPostReaction(
+                    await post.nullifyingPostReaction(
                         sentPostId,
                         previousReaction,
                     );
@@ -322,13 +342,10 @@ export class PostsCommandService {
                         ],
                     };
                 }
-                // если мы меняем реакцию на Like или Dislike
+                // если мы меняем реакцию на Like или Dislike (sentLike === "Like" или "Dislike")
             } else {
-                // console.warn(
-                //     "DID WE GET INSIDE меняем реакцию на Like или Dislike ???",
-                // );
 
-                // меняем реакцию на новую
+                // меняем реакцию в коллекции лайков на новую
                 previousReactionResult.likeStatus = sentLike;
 
                 const ifSavingLikeSuccessful =
@@ -350,8 +367,9 @@ export class PostsCommandService {
                     };
                 }
 
+                // меняем реакцию в коллекции постов на новую
                 const ifSwitchReactionSuccessfull =
-                    await this.postsCommandRepository.switchPostReaction(
+                    await post.switchPostReaction(
                         sentPostId,
                         sentLike,
                     );
@@ -373,6 +391,25 @@ export class PostsCommandService {
         }
 
         // реакция изменена удачно
+        // теперь обновляем последние три поста
+        const refreshLastLikesstatus = await this.postsLikesCommandRepository.getLatestLikesForPost(sentPostId);
+        post.updateNewestLikes(refreshLastLikesstatus);
+        const result = await this.postsCommandRepository.savePostData(post);
+
+        if (!result) {
+            return {
+                data: null,
+                statusCode: HttpStatus.InternalServerError,
+                statusDescription: `Saving refreshed like info was not successfull for post ${sentPostId} inside PostsCommandService.likePostById.`,
+                errorsMessages: [
+                    {
+                        field: "if (!result) inside PostsCommandService.likePostById", // это служебная и отладочная информация, к ней НЕ должен иметь доступ фронтенд, обрабатываем внутри периметра работы бэкэнда
+                        message: `Internal Server Error`,
+                    },
+                ],
+            };
+        }
+
         return {
             data: null,
             statusCode: HttpStatus.NoContent,
@@ -384,6 +421,5 @@ export class PostsCommandService {
                 },
             ],
         };
-
     }
 }

@@ -1,9 +1,10 @@
 import { HydratedDocument, model, Model, Schema } from "mongoose";
-import {
-    LikeStatus,
-} from "../routers/router-types/comment-like-storage-model";
+import { LikeStatus } from "../routers/router-types/comment-like-storage-model";
 import { PostsLikesStorageModel } from "../routers/router-types/post-like-storage-model";
-import { COMMENTS_LIKES_COLLECTION_NAME, POSTS_LIKES_COLLECTION_NAME } from "./db-collection-names";
+import {
+    COMMENTS_LIKES_COLLECTION_NAME,
+    POSTS_LIKES_COLLECTION_NAME,
+} from "./db-collection-names";
 
 // export enum LikeStatus {
 //     None = 'None',
@@ -19,7 +20,6 @@ import { COMMENTS_LIKES_COLLECTION_NAME, POSTS_LIKES_COLLECTION_NAME } from "./d
 //     likeStatus: LikeStatus;
 // };
 
-
 const postLikesMethods = {
 
 };
@@ -27,7 +27,20 @@ const postLikesMethods = {
 type PostLikesMethods = typeof postLikesMethods;
 
 const postLikesStatics = {
+    createNewPostLike(
+        sentPostId: string,
+        sentUserId: string,
+        sentUserLogin: string,
+        sentLike: LikeStatus,
+    ): PostLikeDocument {
+        const newPostLike = new PostLikeModel();
+        newPostLike.postId = sentPostId;
+        newPostLike.userId = sentUserId;
+        newPostLike.userLogin = sentUserLogin;
+        newPostLike.likeStatus = sentLike;
 
+        return newPostLike;
+    },
 };
 
 type PostLikesStatics = typeof postLikesStatics;
@@ -40,7 +53,7 @@ const PostLikesSchema = new Schema<PostsLikesStorageModel>(
         userLogin: { type: String, required: true },
         createdAt: {
             type: Date,
-            default: Date.now
+            default: Date.now,
             // просто {type: Date, default: new Date()} нельзя!
             // когда пишем код схемы, Node.js выполняет его один раз при старте приложения,
             // чтобы создать объект Schema
@@ -51,7 +64,7 @@ const PostLikesSchema = new Schema<PostsLikesStorageModel>(
             type: String,
             enum: Object.values(LikeStatus),
             required: true,
-            default: LikeStatus.None
+            default: LikeStatus.None,
         },
     },
     {
@@ -60,7 +73,7 @@ const PostLikesSchema = new Schema<PostsLikesStorageModel>(
         // versionKey: false,
         // id: false,
         autoIndex: false,
-        optimisticConcurrency: true
+        optimisticConcurrency: true,
     },
 );
 
@@ -70,14 +83,17 @@ PostLikesSchema.index({ postId: 1, createdAt: -1 });
 // Это критично, чтобы не плодить дубликаты при частых кликах.
 PostLikesSchema.index({ postId: 1, userId: 1 }, { unique: true });
 
-
-type PostLikeModelType = Model<PostsLikesStorageModel, {}, PostLikesMethods> & PostLikesStatics;
-export type PostLikeDocument = HydratedDocument<PostsLikesStorageModel, PostLikesMethods>;
+type PostLikeModelType = Model<PostsLikesStorageModel, {}, PostLikesMethods> &
+    PostLikesStatics;
+export type PostLikeDocument = HydratedDocument<
+    PostsLikesStorageModel,
+    PostLikesMethods
+>;
 
 export const PostLikeModel = model<PostsLikesStorageModel, PostLikeModelType>(
     "PostLikes", // Короткое имя для внутренней регистрации в Mongoose
     PostLikesSchema,
-    POSTS_LIKES_COLLECTION_NAME
+    POSTS_LIKES_COLLECTION_NAME,
 );
 
 PostLikesSchema.methods = postLikesMethods;
