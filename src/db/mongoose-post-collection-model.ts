@@ -1,4 +1,4 @@
-import { CallbackError, HydratedDocument, model, Model, Schema } from "mongoose";
+import { HydratedDocument, model, Model, Schema } from "mongoose";
 import { PostStorageModel } from "../routers/router-types/post-storage-model";
 import { LikeStatus } from "../routers/router-types/comment-like-storage-model";
 import { POSTS_COLLECTION_NAME } from "./db-collection-names";
@@ -51,8 +51,8 @@ const postMethods = {
     ): Promise<boolean> {
         try {
             const updateQuery = newStatus === LikeStatus.Like
-                ? { 'likesInfo.likesCount': 1 }
-                : { 'likesInfo.dislikesCount': 1 };
+                ? { 'extendedLikesInfo.likesCount': 1 }
+                : { 'extendedLikesInfo.dislikesCount': 1 };
 
             // атомарный апдейт для избегания состояния гонки
             const result = await PostModel.updateOne(
@@ -81,8 +81,8 @@ const postMethods = {
     ): Promise<boolean> {
         try {
             const fieldToDecrement = oldStatus === LikeStatus.Like
-                ? 'likesInfo.likesCount'
-                : 'likesInfo.dislikesCount';
+                ? 'extendedLikesInfo.likesCount'
+                : 'extendedLikesInfo.dislikesCount';
 
             // создаем фильтр: ищем по ID И проверяем, что в поле больше 0
             const filter: any = {
@@ -136,14 +136,14 @@ const postMethods = {
             const filter: any = { _id: sentPostId };
 
             if (isEnablingLike) {
-                filter["likesInfo.dislikesCount"] = { $gt: 0 };
+                filter["extendedLikesInfo.dislikesCount"] = { $gt: 0 };
             } else {
-                filter["likesInfo.likesCount"] = { $gt: 0 };
+                filter["extendedLikesInfo.likesCount"] = { $gt: 0 };
             }
 
             const updateQuery = isEnablingLike
-                ? { "likesInfo.likesCount": 1, "likesInfo.dislikesCount": -1 }
-                : { "likesInfo.likesCount": -1, "likesInfo.dislikesCount": 1 };
+                ? { "extendedLikesInfo.likesCount": 1, "extendedLikesInfo.dislikesCount": -1 }
+                : { "extendedLikesInfo.likesCount": -1, "extendedLikesInfo.dislikesCount": 1 };
 
             // используем атомарный updateOne вместо save(), чтобы избежать состояния гонки
             const result = await PostModel.updateOne(filter, {
@@ -191,10 +191,15 @@ const postStatics = {
         const newPost = new PostModel();
         newPost.id = newPost._id.toString();
         newPost.shortDescription = shortDescription;
+        newPost.content = content;
         newPost.title = title;
         newPost.blogId = blogId;
         newPost.blogName = blogName;
         newPost.createdAt = new Date();
+        newPost.extendedLikesInfo.likesCount =0;
+        newPost.extendedLikesInfo.dislikesCount =0;
+        newPost.extendedLikesInfo.myStatus = LikeStatus.None;
+        newPost.extendedLikesInfo.newestLikes = [];
 
         return newPost;
     }
@@ -213,6 +218,7 @@ const PostSchema = new Schema<PostStorageModel>(
                 return this._id ? this._id.toString() : "undefined";
             },
         },
+        title: {type: String, required: true},
         shortDescription: { type: String, required: true },
         content: { type: String, required: true },
         blogId: { type: String, required: true },
@@ -282,6 +288,6 @@ PostSchema.index({ blogId: 1, createdAt: -1 });
 type PostModelType = Model<PostStorageModel, {}, PostMethods> & PostStatics;
 export type PostDocument = HydratedDocument<PostStorageModel, PostMethods>;
 
-export const PostModel = model<PostStorageModel, PostModelType>("Post", PostSchema, POSTS_COLLECTION_NAME);
 PostSchema.methods = postMethods;
 PostSchema.statics = postStatics;
+export const PostModel = model<PostStorageModel, PostModelType>("Post", PostSchema, POSTS_COLLECTION_NAME);

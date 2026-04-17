@@ -18,7 +18,7 @@ export const mapSinglePostCollectionToViewModel = (
         createdAt: postInContainer.createdAt,
         extendedLikesInfo: {
             ...postInContainer.extendedLikesInfo,
-            myStatus: (userReaction !== null) ? userReaction.likeStatus : LikeStatus.None
+            myStatus: (userReaction !== null) ? userReaction.likeStatus : postInContainer.extendedLikesInfo.myStatus
         }
 
     };

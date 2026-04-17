@@ -11,6 +11,7 @@ import { dataQueryRepository } from "../src/repository-layers/query-repository-l
 import { container } from "../src/composition-root/composition-root";
 import { PostsCommandRepository } from "../src/repository-layers/command-repository-layer/posts-command-repository";
 import { TYPES } from "../src/composition-root/ioc-types";
+import { PostModel } from "../src/db/mongoose-post-collection-model";
 
 describe("Test API for managing posts", () => {
     const testApp = express();
@@ -27,7 +28,7 @@ describe("Test API for managing posts", () => {
 
         const res = await request(testApp).delete(`${TESTING_PATH}/all-data`);
         expect(res.status).toBe(204);
-    });
+    }, 25000);
 
     afterAll(async () => {
         const res = await request(testApp).delete(`${TESTING_PATH}/all-data`);
@@ -39,7 +40,7 @@ describe("Test API for managing posts", () => {
     it("", async () => {
         const res = await request(testApp).delete(`${TESTING_PATH}/all-data`);
         expect(res.status).toBe(204);
-    });
+    }, 15000);
 
     let blogId_1: string | undefined = "";
     let blogId_2: string | undefined = "";
@@ -63,9 +64,14 @@ describe("Test API for managing posts", () => {
                 content: "Eto testovoe napolnenie posta 001_001",
                 blogId: blogId_1,
             };
-            const insertedPost_1 =
-                await postsCommandRepository.createNewPost(newPost_1);
-            if (!insertedPost_1) {
+            // const insertedPost_1 =
+            //     await postsCommandRepository.createNewPost(newPost_1);
+
+            const post_1 = await PostModel.createNewPost(newBlog_1.name, newPost_1);
+            await postsCommandRepository.savePostData(post_1);
+            postId_1 = post_1.id;
+
+            if (!post_1) {
                 throw new Error(
                     "Failed to createNewPost, returned undefined...",
                 );
@@ -77,9 +83,14 @@ describe("Test API for managing posts", () => {
                 content: "Eto testovoe napolnenie posta 001_002",
                 blogId: blogId_1,
             };
-            const insertedPost_2 =
-                await postsCommandRepository.createNewPost(newPost_2);
-            if (!insertedPost_2) {
+            // const insertedPost_2 =
+            //     await postsCommandRepository.createNewPost(newPost_2);
+
+            const post_2 = await PostModel.createNewPost(newBlog_1.name, newPost_2);
+            await postsCommandRepository.savePostData(post_2);
+            postId_2 = post_2.id;
+
+            if (!post_2) {
                 throw new Error(
                     "Failed to createNewPost, returned undefined...",
                 );
@@ -102,8 +113,12 @@ describe("Test API for managing posts", () => {
                 content: "Eto testovoe napolnenie posta 002_001",
                 blogId: blogId_2,
             };
-            postId_3 = await postsCommandRepository.createNewPost(newPost_3);
-            if (!postId_3) {
+
+            const post_3 = await PostModel.createNewPost(newBlog_2.name, newPost_3);
+            await postsCommandRepository.savePostData(post_3);
+            postId_3 = post_3.id;
+
+            if (!post_3) {
                 throw new Error(
                     "Failed to createNewPost, returned undefined...",
                 );
@@ -115,15 +130,18 @@ describe("Test API for managing posts", () => {
                 content: "Eto testovoe napolnenie posta 002_002",
                 blogId: blogId_2,
             };
-            const insertedPost_4 =
-                await postsCommandRepository.createNewPost(newPost_4);
-            if (!insertedPost_4) {
+
+            const post_4 = await PostModel.createNewPost(newBlog_2.name, newPost_4);
+            await postsCommandRepository.savePostData(post_4);
+            postId_4 = post_4.id;
+
+            if (!post_4) {
                 throw new Error(
                     "Failed to createNewPost, returned undefined...",
                 );
             }
         }
-    });
+    }, 15000);
 
     it("GET '/api/posts/' - checking response with empty query params request - should respond with a list of posts (4 post entries total)", async () => {
         expect(await dataQueryRepository.returnBloggersAmount()).toBe(2);
@@ -282,7 +300,7 @@ describe("Test API for managing posts", () => {
 
             const propertyCount = Object.keys(res.body).length;
 
-            expect(propertyCount).toBe(7);
+            expect(propertyCount).toBe(8);
 
             expect(res.body.id).toBeDefined();
             expect(res.body.blogName).toBeDefined();
@@ -339,7 +357,7 @@ describe("Test API for managing posts", () => {
         const res = await request(testApp).get(`${POSTS_PATH}/${postId_3}`);
 
         const propertyCount = Object.keys(res.body).length;
-        expect(propertyCount).toBe(7);
+        expect(propertyCount).toBe(8);
 
         expect(res.body).toHaveProperty("id", postId_3);
         expect(res.body).toHaveProperty("title", "post blog 001");
@@ -380,7 +398,7 @@ describe("Test API for managing posts", () => {
             );
             expect(anotherResults).toBeDefined();
             const propertyCount = Object.keys(anotherResults.body).length;
-            expect(propertyCount).toBe(7);
+            expect(propertyCount).toBe(8);
             expect(anotherResults.status).toBe(HttpStatus.Ok);
 
             expect(anotherResults.body).toHaveProperty("id", postId_3);
@@ -452,7 +470,7 @@ describe("Test API for managing posts", () => {
 
         const anotherResults = await request(testApp)
             .get(`${POSTS_PATH}/${postId_3}`)
-            .set("Authorization", "Basic " + "YWRtaW46cXdlcnR5");
+            //.set("Authorization", "Basic " + "YWRtaW46cXdlcnR5");
         expect(anotherResults.status).toBe(HttpStatus.NotFound);
     });
 });

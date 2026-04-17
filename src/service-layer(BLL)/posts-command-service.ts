@@ -22,6 +22,7 @@ import {
     PostLikeModel,
 } from "../db/mongoose-posts-like-collection-model";
 import { UsersCommandRepository } from "../repository-layers/command-repository-layer/users-command-repository";
+import { Types } from "mongoose";
 
 @injectable()
 export class PostsCommandService {
@@ -181,7 +182,7 @@ export class PostsCommandService {
 
             // в конце удаляем сам пост
             const result = await this.postsCommandRepository.deletePost(
-                new ObjectId(postId),
+                new Types.ObjectId(postId),
             );
             return result;
         } catch (error) {

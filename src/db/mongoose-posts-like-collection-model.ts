@@ -90,11 +90,11 @@ export type PostLikeDocument = HydratedDocument<
     PostLikesMethods
 >;
 
+PostLikesSchema.methods = postLikesMethods;
+PostLikesSchema.statics = postLikesStatics;
 export const PostLikeModel = model<PostsLikesStorageModel, PostLikeModelType>(
     "PostLikes", // Короткое имя для внутренней регистрации в Mongoose
     PostLikesSchema,
     POSTS_LIKES_COLLECTION_NAME,
 );
 
-PostLikesSchema.methods = postLikesMethods;
-PostLikesSchema.statics = postLikesStatics;

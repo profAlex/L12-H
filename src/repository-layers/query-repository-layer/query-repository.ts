@@ -47,6 +47,7 @@ import { CommentLikeDocument } from "../../db/mongoose-comments-like-collection-
 import { CommentsLikesQueryRepository } from "./comments-likes-query-repository";
 import { container } from "../../composition-root/composition-root";
 import { TYPES } from "../../composition-root/ioc-types";
+import { PostStorageModel } from "../../routers/router-types/post-storage-model";
 
 async function findBlogByPrimaryKey(
     id: ObjectId,
@@ -56,7 +57,7 @@ async function findBlogByPrimaryKey(
 
 async function findPostByPrimaryKey(
     id: ObjectId,
-): Promise<PostCollectionStorageModel | null> {
+): Promise<PostStorageModel | null> {
     return postsCollection.findOne({ _id: id });
 }
 
@@ -329,7 +330,7 @@ export const dataQueryRepository = {
             blogId: sentBlogId,
         });
 
-        return mapToPostListPaginatedOutput(items, {
+        return mapToPostListPaginatedOutput(items, [],{
             pageNumber: pageNumber,
             pageSize: pageSize,
             totalCount,
@@ -395,11 +396,11 @@ export const dataQueryRepository = {
 
     async findSinglePost(postId: string): Promise<PostViewModel | undefined> {
         if (ObjectId.isValid(postId)) {
-            const post: PostCollectionStorageModel | null =
+            const post: PostStorageModel | null =
                 await findPostByPrimaryKey(new ObjectId(postId));
 
             if (post) {
-                return mapSinglePostCollectionToViewModel(post);
+                return mapSinglePostCollectionToViewModel(post, null);
             }
         }
 

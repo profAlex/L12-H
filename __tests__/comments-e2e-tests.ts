@@ -22,6 +22,7 @@ import { LikeStatus } from "../src/routers/router-types/comment-like-storage-mod
 import { CommentsHandler } from "../src/routers/router-handlers/comment-router-description";
 import { CommentsQueryService } from "../src/service-layer(BLL)/comments-query-service";
 import { PostsCommandRepository } from "../src/repository-layers/command-repository-layer/posts-command-repository";
+import { PostModel } from "../src/db/mongoose-post-collection-model";
 
 describe("Test API for managing comments", () => {
     const testApp = express();
@@ -54,7 +55,7 @@ describe("Test API for managing comments", () => {
 
         const res = await request(testApp).delete(`${TESTING_PATH}/all-data`);
         expect(res.status).toBe(204);
-    });
+    }, 25000);
 
     afterAll(async () => {
         const res = await request(testApp).delete(`${TESTING_PATH}/all-data`);
@@ -85,12 +86,16 @@ describe("Test API for managing comments", () => {
                 content: "Eto testovoe napolnenie posta 001_001",
                 blogId: blogId_1,
             };
-            postId_1 = await postsCommandRepository.createNewPost(newPost_1);
+
+            const post_1 = await PostModel.createNewPost(newBlog_1.name, newPost_1);
+            await postsCommandRepository.savePostData(post_1);
+            postId_1 = post_1.id;
             if (!postId_1) {
                 throw new Error(
                     "Failed to createNewPost, returned undefined...",
                 );
             }
+
 
             const newPost_2 = {
                 title: "post blog 002",
@@ -98,7 +103,11 @@ describe("Test API for managing comments", () => {
                 content: "Eto testovoe napolnenie posta 001_002",
                 blogId: blogId_1,
             };
-            postId_2 = await postsCommandRepository.createNewPost(newPost_2);
+
+            const post_2 = await PostModel.createNewPost(newBlog_1.name, newPost_2);
+            await postsCommandRepository.savePostData(post_2)
+            postId_2 = post_2.id;
+
             if (!postId_2) {
                 throw new Error(
                     "Failed to createNewPost, returned undefined...",
@@ -122,7 +131,10 @@ describe("Test API for managing comments", () => {
                 content: "Eto testovoe napolnenie posta 002_001",
                 blogId: blogId_2,
             };
-            postId_3 = await postsCommandRepository.createNewPost(newPost_3);
+
+            const post_3 = await PostModel.createNewPost(newBlog_2.name, newPost_3);
+            await postsCommandRepository.savePostData(post_3)
+            postId_3 = post_3.id;
             if (!postId_3) {
                 throw new Error(
                     "Failed to createNewPost, returned undefined...",
@@ -135,14 +147,17 @@ describe("Test API for managing comments", () => {
                 content: "Eto testovoe napolnenie posta 002_002",
                 blogId: blogId_2,
             };
-            postId_4 = await postsCommandRepository.createNewPost(newPost_4);
+
+            const post_4 = await PostModel.createNewPost(newBlog_2.name, newPost_4);
+            await postsCommandRepository.savePostData(post_4)
+            postId_4 = post_4.id;
             if (!postId_4) {
                 throw new Error(
                     "Failed to createNewPost, returned undefined...",
                 );
             }
         }
-    });
+    }, 15000);
 
     let userId_1: string | undefined = "";
     let userId_2: string | undefined = "";

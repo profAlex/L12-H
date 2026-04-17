@@ -26,6 +26,10 @@ import { PostsCommandService } from "../service-layer(BLL)/posts-command-service
 import { PostsQueryRepository } from "../repository-layers/query-repository-layer/posts-query-repository";
 import { PostsQueryService } from "../service-layer(BLL)/posts-query-service";
 import { PostsCommandRepository } from "../repository-layers/command-repository-layer/posts-command-repository";
+import { PostsLikesQueryRepository } from "../repository-layers/query-repository-layer/posts-likes-query-repository";
+import {
+    PostsLikesCommandRepository
+} from "../repository-layers/command-repository-layer/posts-likes-command-repository";
 
 // export const authService = new AuthCommandService(
 //     new UsersQueryRepository(),
@@ -91,6 +95,7 @@ container.bind(TYPES.CommentsLikesQueryRepository).to(CommentsLikesQueryReposito
 container.bind(TYPES.CommentsLikesCommandRepository).to(CommentsLikesCommandRepository).inSingletonScope();
 container.bind(TYPES.PostsQueryRepository).to(PostsQueryRepository).inSingletonScope();
 container.bind(TYPES.PostsCommandRepository).to(PostsCommandRepository).inSingletonScope();
-
+container.bind(TYPES.PostsLikesQueryRepository).to(PostsLikesQueryRepository).inSingletonScope();
+container.bind(TYPES.PostsLikesCommandRepository).to(PostsLikesCommandRepository).inSingletonScope();
 
 export { container };

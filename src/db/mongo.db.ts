@@ -18,12 +18,14 @@ import {
     POSTS_COLLECTION_NAME, REQUESTS_RESTRICTIONS_COLLECTION_NAME, SESSIONS_COLLECTION_NAME,
     USERS_COLLECTION_NAME
 } from "./db-collection-names";
+import { PostLikeModel } from "./mongoose-posts-like-collection-model";
+import { PostModel } from "./mongoose-post-collection-model";
 
 const DB_NAME = "bloggers_db";
 
 
 // const URI ="mongodb+srv://admin:admin@learningcluster.f1zm90x.mongodb.net/?retryWrites=true&w=majority&appName=LearningCluster";
-const URI = "";
+const URI = "mongodb+srv://bolly198:kro8eJLuv9BR0QPl@newlearningcluster.1tnov1c.mongodb.net/?appName=NewLearningCluster";
 
 let db: Db | null = null;
 export let client: MongoClient | null = null;
@@ -90,14 +92,18 @@ export async function runDB() {
             await Promise.all([
                 safeMongooseDropIndexes(SessionModel),
                 safeMongooseDropIndexes(CommentModel),
-                safeMongooseDropIndexes(CommentLikeModel)
+                safeMongooseDropIndexes(CommentLikeModel),
+                safeMongooseDropIndexes(PostModel),
+                safeMongooseDropIndexes(PostLikeModel),
             ]);
 
             // создаем индексы заново (синхронизируем со схемами)
             await Promise.all([
                 SessionModel.createIndexes(),
                 CommentModel.createIndexes(), // Создаст и твой новый составной индекс
-                CommentLikeModel.createIndexes()
+                CommentLikeModel.createIndexes(),
+                PostModel.createIndexes(),
+                PostLikeModel.createIndexes(),
             ]);
 
             console.log("✅ Mongoose indexes rebuilt successfully");
@@ -114,14 +120,14 @@ export async function runDB() {
             console.log("ℹ️ Collection did not exist, skipping drop");
         }
 
-        // После dropIndexes база пустая, принудительно заставляем Mongoose применить создание индексов
-        // запускаем оба асинхронных процесса параллельно
-        await Promise.all([
-            SessionModel.createIndexes(),
-            CommentLikeModel.createIndexes(),
-            CommentModel.createIndexes()
-        ]);
-        console.log("✅ Fresh Mongoose indexes created successfully");
+        // // После dropIndexes база пустая, принудительно заставляем Mongoose применить создание индексов
+        // // запускаем оба асинхронных процесса параллельно
+        // await Promise.all([
+        //     SessionModel.createIndexes(),
+        //     CommentLikeModel.createIndexes(),
+        //     CommentModel.createIndexes()
+        // ]);
+        // console.log("✅ Fresh Mongoose indexes created successfully");
 
         // настройка индексов для коллекций, которые еще не в Mongoose
         // refreshTokensBlackListCollection уже deprecated, нужно будет удалить

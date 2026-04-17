@@ -192,6 +192,8 @@ export class PostsQueryRepository {
         const { sortBy, sortDirection, pageNumber, pageSize } =
             sentSanitizedQuery;
 
+        //console.warn("DEFAULT SORT NUMBERS:", sortBy, sortDirection, pageNumber, pageSize);
+
         const skip = (pageNumber - 1) * pageSize;
 
         const [postsList, totalCount] = await Promise.all([

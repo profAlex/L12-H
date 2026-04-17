@@ -68,11 +68,12 @@ CommentLikesSchema.index({ commentId: 1, });
 type CommentLikeModelType = Model<CommentsLikesStorageModel, {}, CommentLikesMethod> & CommentsLikesStatics;
 export type CommentLikeDocument = HydratedDocument<CommentsLikesStorageModel, CommentLikesMethod>;
 
+CommentLikesSchema.methods = commentLikesMethods;
+CommentLikesSchema.statics = commentLikeStatics;
+
 export const CommentLikeModel = model<CommentsLikesStorageModel, CommentLikeModelType>(
     "CommentLikes", // Короткое имя для внутренней регистрации в Mongoose
     CommentLikesSchema,
     COMMENTS_LIKES_COLLECTION_NAME
 );
 
-CommentLikesSchema.methods = commentLikesMethods;
-CommentLikesSchema.statics = commentLikeStatics;

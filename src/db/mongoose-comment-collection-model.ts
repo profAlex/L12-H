@@ -120,9 +120,9 @@ CommentSchema.index({ relatedPostId: 1, createdAt: -1 });
 type CommentModelType = Model<CommentStorageModel, {}, CommentMethods> & CommentStatics;
 export type CommentDocument = HydratedDocument<CommentStorageModel, CommentMethods>;
 
-export const CommentModel = model<CommentStorageModel, CommentModelType>("Comment", CommentSchema, COMMENTS_COLLECTION_NAME);
 CommentSchema.methods = commentMethods;
 CommentSchema.statics = commentStatics;
+export const CommentModel = model<CommentStorageModel, CommentModelType>("Comment", CommentSchema, COMMENTS_COLLECTION_NAME);
 
 // console.log("🔍 Actual collection name for CommentModel:", CommentModel.collection.name);
 

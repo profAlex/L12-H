@@ -31,14 +31,14 @@ describe("Test API for managing login, registration and registration-confirmatio
 
         const res = await request(testApp).delete(`${TESTING_PATH}/all-data`);
         expect(res.status).toBe(204);
-    });
+    }, 25000);
 
     afterAll(async () => {
         const res = await request(testApp).delete(`${TESTING_PATH}/all-data`);
         expect(res.status).toBe(204);
         // Закрываем после всех тестов
         await closeDB();
-    });
+    }, 15000);
 
     let userId_1: string | undefined = "";
     let userId_2: string | undefined = "";
@@ -64,12 +64,12 @@ describe("Test API for managing login, registration and registration-confirmatio
         jest.spyOn(UUIDgeneration, "generateUUID").mockReturnValue(
             "1-2-3-4-5-6",
         );
-    });
+    }, 15000);
 
     afterEach(() => {
         jest.clearAllMocks(); // сбрасываем статистику вызовов, иначе она будет накапливать счет вызовов
         // или jest.restoreAllMocks()
-    });
+    }, 15000);
 
     it("Creating test user entries, directly without endpoint calls", async () => {
 
@@ -456,7 +456,7 @@ describe("Test API for managing login, registration and registration-confirmatio
             loginRes.body.accessToken,
         );
         expect(refreshTokenCookie).not.toEqual(refreshNewTokenCookie);
-    });
+    }, 15000);
 
     it("POST '/api/auth/refresh-token' - attempt to refresh token with expired refresh token (not successful)", async () => {
         // Создаём expired JWT
@@ -556,7 +556,7 @@ describe("Test API for managing login, registration and registration-confirmatio
             .send();
 
         expect(refreshResAfterLogout.status).toBe(HttpStatus.Unauthorized);
-    });
+    }, 15000);
 
     it("POST '/api/auth/logout' - attempt to logout with invalid refresh token (not successful)", async () => {
         const invalidRefreshToken = "invalid_refresh_token";

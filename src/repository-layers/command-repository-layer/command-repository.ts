@@ -22,6 +22,7 @@ import { SessionStorageModel } from "../../routers/router-types/auth-SessionStor
 import { RequestRestrictionStorageModel } from "../../routers/router-types/auth-RequestRestrictionStorageModel";
 import { LikeStatus } from "../../routers/router-types/comment-like-storage-model";
 import { CommentLikeModel } from "../../db/mongoose-comments-like-collection-model";
+import { PostStorageModel } from "../../routers/router-types/post-storage-model";
 
 export type BloggerCollectionStorageModel = {
     _id: ObjectId;
@@ -52,7 +53,7 @@ async function findBlogByPrimaryKey(
 
 async function findPostByPrimaryKey(
     id: ObjectId,
-): Promise<PostCollectionStorageModel | null> {
+): Promise<PostStorageModel | null> {
     return postsCollection.findOne({ _id: id });
 }
 

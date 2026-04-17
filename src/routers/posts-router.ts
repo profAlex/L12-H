@@ -33,7 +33,6 @@ export const getPostsRouter = (postsHandler: PostsHandler) => {
         `/:${IdParamName.PostId}/like-status`, // здесь было просто id
         accessTokenGuard,
         validateParameterPostId,
-        /*inputErrorManagementMiddleware,*/ postInputModelValidation,
         inputErrorManagementMiddleware,
         postsHandler.likePostById,
     );
