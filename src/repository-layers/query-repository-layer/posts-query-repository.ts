@@ -170,7 +170,7 @@ export class PostsQueryRepository {
                 .limit(pageSize)
                 .lean(),
 
-            PostModel.countDocuments({filter}),
+            PostModel.countDocuments(filter),
         ]);
 
         const postIdsList = postsList.map((post) => post.id);
@@ -212,7 +212,7 @@ export class PostsQueryRepository {
                 .limit(pageSize)
                 .lean(),
 
-            PostModel.countDocuments({filter}),
+            PostModel.countDocuments(filter),
         ]);
 
         return mapToPostListPaginatedOutput(postsList, [], {
