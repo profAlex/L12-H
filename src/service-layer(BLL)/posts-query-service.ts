@@ -60,11 +60,11 @@ export class PostsQueryService {
     }
 
     async getSeveralPostsByBlogIdAnonimously(
-        sentblogId: string,
+        sentBlogId: string,
         sentSanitizedQuery: InputGetBlogPostsByIdQuery,
     ): Promise<PaginatedPostViewModel> {
         return this.postsQueryRepository.getSeveralPostsAnonimously(
-            sentblogId,
+            sentBlogId,
             sentSanitizedQuery,
         );
     }

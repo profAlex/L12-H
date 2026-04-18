@@ -103,14 +103,16 @@ export class BlogsHandler {
         if (req.user.userId === null) {
             // console.warn();
             const postsListOutput: PaginatedPostViewModel =
-                await this.postsQueryService.getSeveralPostsAnonimously(
+                await this.postsQueryService.getSeveralPostsByBlogIdAnonimously(
+                    blogId,
                     sanitizedQuery,
                 );
 
             res.status(HttpStatus.Ok).send(postsListOutput);
         } else {
             const postsListOutput: PaginatedPostViewModel =
-                await this.postsQueryService.getSeveralPosts(
+                await this.postsQueryService.getSeveralPostsByBlogId(
+                    blogId,
                     req.user.userId,
                     sanitizedQuery,
                 );
