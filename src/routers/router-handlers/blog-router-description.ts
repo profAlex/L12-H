@@ -111,7 +111,7 @@ export class BlogsHandler {
         } else {
             const postsListOutput: PaginatedPostViewModel =
                 await this.postsQueryService.getSeveralPosts(
-                    req.user!.userId,
+                    req.user.userId,
                     sanitizedQuery,
                 );
 
@@ -119,7 +119,7 @@ export class BlogsHandler {
         }
     };
 
-    
+
     public createNewBlogPost = async (req: Request, res: Response) => {
 
         const blogId: string =

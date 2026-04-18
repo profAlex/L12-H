@@ -148,6 +148,7 @@ export class PostsQueryRepository {
     // }
 
     async getSeveralPosts(
+        sentBlogId: string | null,
         sentUserId: string,
         sentSanitizedQuery: InputGetBlogPostsByIdQuery,
     ): Promise<PaginatedPostViewModel> {
@@ -155,9 +156,10 @@ export class PostsQueryRepository {
             sentSanitizedQuery;
 
         const skip = (pageNumber - 1) * pageSize;
+        const filter = sentBlogId ? { blogId: sentBlogId } : {};
 
         const [postsList, totalCount] = await Promise.all([
-            PostModel.find({})
+            PostModel.find(filter)
                 .sort({
                     [sortBy]:
                         sortDirection === CustomSortDirection.Ascending
@@ -168,7 +170,7 @@ export class PostsQueryRepository {
                 .limit(pageSize)
                 .lean(),
 
-            PostModel.countDocuments({}),
+            PostModel.countDocuments({filter}),
         ]);
 
         const postIdsList = postsList.map((post) => post.id);
@@ -187,6 +189,7 @@ export class PostsQueryRepository {
     }
 
     async getSeveralPostsAnonimously(
+        sentBlogId: string | null,
         sentSanitizedQuery: InputGetBlogPostsByIdQuery,
     ): Promise<PaginatedPostViewModel> {
         const { sortBy, sortDirection, pageNumber, pageSize } =
@@ -195,9 +198,10 @@ export class PostsQueryRepository {
         //console.warn("DEFAULT SORT NUMBERS:", sortBy, sortDirection, pageNumber, pageSize);
 
         const skip = (pageNumber - 1) * pageSize;
+        const filter = sentBlogId ? { blogId: sentBlogId } : {};
 
         const [postsList, totalCount] = await Promise.all([
-            PostModel.find({})
+            PostModel.find(filter)
                 .sort({
                     [sortBy]:
                         sortDirection === CustomSortDirection.Ascending
@@ -208,7 +212,7 @@ export class PostsQueryRepository {
                 .limit(pageSize)
                 .lean(),
 
-            PostModel.countDocuments({}),
+            PostModel.countDocuments({filter}),
         ]);
 
         return mapToPostListPaginatedOutput(postsList, [], {
