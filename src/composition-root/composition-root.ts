@@ -30,6 +30,7 @@ import { PostsLikesQueryRepository } from "../repository-layers/query-repository
 import {
     PostsLikesCommandRepository
 } from "../repository-layers/command-repository-layer/posts-likes-command-repository";
+import { BlogsHandler } from "../routers/router-handlers/blog-router-description";
 
 // export const authService = new AuthCommandService(
 //     new UsersQueryRepository(),
@@ -73,6 +74,7 @@ container.bind(TYPES.SecurityDevicesHandler).to(SecurityDevicesHandler).inSingle
 container.bind(TYPES.AuthHandler).to(AuthHandler).inSingletonScope();
 container.bind(TYPES.CommentsHandler).to(CommentsHandler).inSingletonScope();
 container.bind(TYPES.PostsHandler).to(PostsHandler).inSingletonScope();
+container.bind(TYPES.BlogsHandler).to(BlogsHandler).inSingletonScope();
 
 // сервисы
 container.bind(TYPES.BcryptService).to(BcryptService).inSingletonScope();

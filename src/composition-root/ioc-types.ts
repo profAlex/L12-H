@@ -29,6 +29,7 @@ export const TYPES = {
     AuthHandler: Symbol.for("AuthHandler"),
     CommentsHandler: Symbol.for("CommentsHandler"),
     PostsHandler: Symbol.for("PostsHandler"),
+    BlogsHandler: Symbol.for("BlogsHandler"),
 
     // Guards / Middlewares
     RefreshTokenGuard: Symbol.for("RefreshTokenGuard"),

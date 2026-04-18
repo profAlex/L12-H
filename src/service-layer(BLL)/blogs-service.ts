@@ -29,16 +29,6 @@ export const blogsService = {
         return await dataCommandRepository.createNewBlogPost(sentBlogId, newPost);
     },
 
-    // async getSeveralPostsById(sentBlogId:string, sentSanitizedQuery: InputGetBlogPostsByIdQuery): Promise<{items: WithId<PostViewModel>[]; totalCount: number}> {
-    //
-    //     return await dataCommandRepository.getSeveralPostsById(sentBlogId, sentSanitizedQuery);
-    // },
-
-    // async findSingleBlog(blogId: string): Promise<BlogViewModel | undefined> {
-    //
-    //     return await dataCommandRepository.findSingleBlog(blogId);
-    // },
-
     async updateBlog (blogId: string, newData: BlogInputModel) {
         return await dataCommandRepository.updateBlog(blogId, newData);
     },

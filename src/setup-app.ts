@@ -16,13 +16,14 @@ import { getCommentsRouter } from "./routers/comments-router";
 import { getPostsRouter } from "./routers/posts-router";
 
 // прочие роутеры пока импортируем по-старому
-import { blogsRouter } from "./routers/blogs-router";
 import { testingRouter } from "./routers/testing-router";
 import { authRouter } from "./routers/auth-router";
 import { usersRouter } from "./routers/users-router";
 import { securityDevicesRouter } from "./routers/security-devices-router";
 import { PostsHandler } from "./routers/router-handlers/post-router-description";
 import { CommentsHandler } from "./routers/router-handlers/comment-router-description";
+import { BlogsHandler } from "./routers/router-handlers/blog-router-description";
+import { getBlogsRouter } from "./routers/blogs-router";
 
 export const setupApp = (app: Express) => {
     app.use(express.json());
@@ -31,11 +32,14 @@ export const setupApp = (app: Express) => {
     // перенесли гет-вызов контейнера сюда, чтобы гарантированно сначала собрался контейнер а затем уже создавались руты
     const commentsHandler = container.get<CommentsHandler>(TYPES.CommentsHandler);
     const postsHandler = container.get<PostsHandler>(TYPES.PostsHandler);
+    const blogsHandler = container.get<BlogsHandler>(TYPES.BlogsHandler);
 
 
     // а здесь уже создаем руты (пока только один, самый конфликтный рут) через фабрики
     const commentsRouter = getCommentsRouter(commentsHandler);
     const postsRouter = getPostsRouter(postsHandler);
+    const blogsRouter = getBlogsRouter(blogsHandler);
+
 
     // подключаем к приложению
     app.use(COMMENTS_PATH, commentsRouter);
