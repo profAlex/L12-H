@@ -18,6 +18,7 @@ import {
 import { accessTokenGuard } from "./guard-middleware/access-token-guard";
 import { commentInputModelValidation } from "./validation-middleware/comment-input-model-validation";
 import { optionalAccessTokenGuard } from "./guard-middleware/optional-access-token-guard";
+import { likeStatusInputModelValidation } from "./validation-middleware/comment-like-input-model-validation";
 
 
 export const getPostsRouter = (postsHandler: PostsHandler) => {
@@ -33,6 +34,7 @@ export const getPostsRouter = (postsHandler: PostsHandler) => {
         `/:${IdParamName.PostId}/like-status`, // здесь было просто id
         accessTokenGuard,
         validateParameterPostId,
+        likeStatusInputModelValidation,
         inputErrorManagementMiddleware,
         postsHandler.likePostById,
     );

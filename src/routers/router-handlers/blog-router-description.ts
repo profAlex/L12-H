@@ -84,40 +84,21 @@ export class BlogsHandler {
     };
 
     public createNewBlogPost = async (req: Request, res: Response) => {
-        // const insertedId = await blogsService.createNewBlog(req.body);
 
         const blogId: string =
             typeof req.params[IdParamName.BlogId] === "string"
                 ? req.params[IdParamName.BlogId]
                 : req.params[IdParamName.BlogId][0];
 
-        // const insertedId = await blogsService.createNewBlogPost(
-        //     blogId,
-        //     req.body,
-        // );
-
+        // используем для создания поста уже имеющийся сервис в постах
         const insertedId = await this.postsCommandService.createNewPost(
             {
                 title: req.body.title,
                 shortDescription: req.body.shortDescription,
                 content: req.body.content,
-                //{req.body}&,
                 blogId: blogId,
             },
         );
-        //
-        // if (insertedId) {
-        //     // а вот здесь уже идем в PostsQueryService с айдишником который нам вернул this.postsCommandService.createNewPost
-        //     const result =
-        //         await this.postsQueryService.findSinglePostAnonimously(
-        //             insertedId,
-        //         );
-        //
-        //     if (result) {
-        //         res.status(HttpStatus.Created).json(result);
-        //         return;
-        //     }
-        // }
 
         if (insertedId) {
             // а вот здесь уже идем в query repo с айдишником который нам вернул command repo
