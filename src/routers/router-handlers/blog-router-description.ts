@@ -11,12 +11,16 @@ import { dataQueryRepository } from "../../repository-layers/query-repository-la
 import { IdParamName } from "../util-enums/id-names";
 import { TYPES } from "../../composition-root/ioc-types";
 import { PostsCommandService } from "../../service-layer(BLL)/posts-command-service";
+import { PaginatedPostViewModel } from "../router-types/post-paginated-view-model";
+import { PostsQueryService } from "../../service-layer(BLL)/posts-query-service";
 
 @injectable()
 export class BlogsHandler {
     constructor(
         @inject(TYPES.PostsCommandService)
         protected postsCommandService: PostsCommandService,
+        @inject(TYPES.PostsQueryService)
+        protected postsQueryService: PostsQueryService,
     ) {}
 
     public getSeveralBlogs = async (req: Request, res: Response) => {
@@ -74,15 +78,48 @@ export class BlogsHandler {
             }); // какие-то коды надо передавать, чтобы пользователи могли сообщать их техподдержке
         }
 
-        const postListOutput = await dataQueryRepository.getSeveralPostsById(
-            blogId,
-            sanitizedQuery,
-        );
+        if (req.user === undefined || req.user.userId === undefined) {
+            console.error({
+                message:
+                    "Required parameter is missing: 'req.user or req.user.userId' inside getSeveralPostsFromBlog in blog-router-description.ts",
+                field: "'if (!req.user || !req.user.userId)' check failed",
+            });
 
-        res.status(HttpStatus.Ok).send(postListOutput);
-        return;
+            return res.status(HttpStatus.InternalServerError).json({
+                message: "Internal server error",
+                field: "",
+            });
+        }
+
+        // ////////////////////////////////////////////////////////
+        // const postListOutput = await dataQueryRepository.getSeveralPostsById(
+        //     blogId,
+        //     sanitizedQuery,
+        // );
+        // ////////////////////////////////////////////////////////
+
+
+        // используем инстанс сервиса поста
+        if (req.user.userId === null) {
+            // console.warn();
+            const postsListOutput: PaginatedPostViewModel =
+                await this.postsQueryService.getSeveralPostsAnonimously(
+                    sanitizedQuery,
+                );
+
+            res.status(HttpStatus.Ok).send(postsListOutput);
+        } else {
+            const postsListOutput: PaginatedPostViewModel =
+                await this.postsQueryService.getSeveralPosts(
+                    req.user!.userId,
+                    sanitizedQuery,
+                );
+
+            res.status(HttpStatus.Ok).send(postsListOutput);
+        }
     };
 
+    
     public createNewBlogPost = async (req: Request, res: Response) => {
 
         const blogId: string =
