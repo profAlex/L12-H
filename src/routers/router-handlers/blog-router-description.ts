@@ -97,12 +97,12 @@ export class BlogsHandler {
         // );
 
         const insertedId = await this.postsCommandService.createNewPost(
-            //{req.body}&,
             {
                 title: req.body.title,
                 shortDescription: req.body.shortDescription,
                 content: req.body.content,
-                blogId: req.user!.userId!,
+                //{req.body}&,
+                blogId: blogId,
             },
         );
         //
