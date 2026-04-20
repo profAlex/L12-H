@@ -42,31 +42,29 @@ export class PostsQueryService {
     async getSeveralPostsAnonimously(
         sentSanitizedQuery: InputGetBlogPostsByIdQuery,
     ): Promise<PaginatedPostViewModel> {
-        return this.postsQueryRepository.getSeveralPostsAnonimously(
-            null,
-            sentSanitizedQuery,
-        );
+        return this.postsQueryRepository.getSeveralPosts({
+            sentSanitizedQuery: sentSanitizedQuery,
+        });
     }
 
     async getSeveralPosts(
         sentUserId: string,
         sentSanitizedQuery: InputGetBlogPostsByIdQuery,
     ): Promise<PaginatedPostViewModel> {
-        return this.postsQueryRepository.getSeveralPosts(
-            null,
-            sentUserId,
-            sentSanitizedQuery,
-        );
+        return this.postsQueryRepository.getSeveralPosts({
+            sentUserId: sentUserId,
+            sentSanitizedQuery: sentSanitizedQuery,
+        });
     }
 
     async getSeveralPostsByBlogIdAnonimously(
         sentBlogId: string,
         sentSanitizedQuery: InputGetBlogPostsByIdQuery,
     ): Promise<PaginatedPostViewModel> {
-        return this.postsQueryRepository.getSeveralPostsAnonimously(
-            sentBlogId,
-            sentSanitizedQuery,
-        );
+        return this.postsQueryRepository.getSeveralPosts({
+            sentBlogId: sentBlogId,
+            sentSanitizedQuery: sentSanitizedQuery,
+        });
     }
 
     async getSeveralPostsByBlogId(
@@ -74,11 +72,11 @@ export class PostsQueryService {
         sentUserId: string,
         sentSanitizedQuery: InputGetBlogPostsByIdQuery,
     ): Promise<PaginatedPostViewModel> {
-        return this.postsQueryRepository.getSeveralPosts(
-            sentBlogId,
-            sentUserId,
-            sentSanitizedQuery,
-        );
+        return this.postsQueryRepository.getSeveralPosts({
+            sentBlogId: sentBlogId,
+            sentUserId: sentUserId,
+            sentSanitizedQuery: sentSanitizedQuery,
+        });
     }
 
     async findSinglePostAnonimously(

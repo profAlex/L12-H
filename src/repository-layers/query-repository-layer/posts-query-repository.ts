@@ -19,6 +19,7 @@ import { PostModel } from "../../db/mongoose-post-collection-model";
 import { CustomSortDirection } from "../../routers/util-enums/sort-direction";
 import { PostLikeModel } from "../../db/mongoose-posts-like-collection-model";
 import { PostsLikesQueryRepository } from "./posts-likes-query-repository";
+import { PostsLikesStorageModel } from "../../routers/router-types/post-like-storage-model";
 
 async function findPostByPrimaryKey(
     id: ObjectId,
@@ -147,11 +148,15 @@ export class PostsQueryRepository {
     //         .lean();
     // }
 
-    async getSeveralPosts(
-        sentBlogId: string | null,
-        sentUserId: string,
-        sentSanitizedQuery: InputGetBlogPostsByIdQuery,
-    ): Promise<PaginatedPostViewModel> {
+    async getSeveralPosts({
+        sentBlogId,
+        sentUserId,
+        sentSanitizedQuery,
+    }: {
+        sentBlogId?: string | null;
+        sentUserId?: string | null;
+        sentSanitizedQuery: InputGetBlogPostsByIdQuery;
+    }): Promise<PaginatedPostViewModel> {
         const { sortBy, sortDirection, pageNumber, pageSize } =
             sentSanitizedQuery;
 
@@ -174,12 +179,15 @@ export class PostsQueryRepository {
         ]);
 
         const postIdsList = postsList.map((post) => post.id);
-
-        const postsReactionList =
-            await this.postsLikesQueryRepository.getReactionListForPosts(
-                postIdsList,
-                sentUserId,
-            );
+        let postsReactionList: (PostsLikesStorageModel & { _id: ObjectId })[] =
+            [];
+        if (sentUserId) {
+            const postsReactionList =
+                await this.postsLikesQueryRepository.getReactionListForPosts(
+                    postIdsList,
+                    sentUserId,
+                );
+        }
 
         return mapToPostListPaginatedOutput(postsList, postsReactionList, {
             pageNumber: pageNumber,
